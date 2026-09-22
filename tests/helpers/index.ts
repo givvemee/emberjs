@@ -8,7 +8,13 @@ import {
 // test setup functions. This way, you can easily extend the setup that is
 // needed per test type.
 
-function setupApplicationTest(hooks, options) {
+// 시그니처를 직접 적지 않고 upstream 에서 끌어옵니다.
+// ember-qunit 이 인자 형태를 바꾸면 여기가 자동으로 따라갑니다.
+type SetupArgs = Parameters<typeof upstreamSetupTest>;
+type Hooks = SetupArgs[0];
+type Options = SetupArgs[1];
+
+function setupApplicationTest(hooks: Hooks, options?: Options) {
   upstreamSetupApplicationTest(hooks, options);
 
   // Additional setup for application tests can be done here.
@@ -27,13 +33,13 @@ function setupApplicationTest(hooks, options) {
   // setupMirage(hooks); // ember-cli-mirage
 }
 
-function setupRenderingTest(hooks, options) {
+function setupRenderingTest(hooks: Hooks, options?: Options) {
   upstreamSetupRenderingTest(hooks, options);
 
   // Additional setup for rendering tests can be done here.
 }
 
-function setupTest(hooks, options) {
+function setupTest(hooks: Hooks, options?: Options) {
   upstreamSetupTest(hooks, options);
 
   // Additional setup for unit tests can be done here.
