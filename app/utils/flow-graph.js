@@ -20,7 +20,12 @@ export class FlowNode {
   @tracked y;
   @tracked data;
 
-  /** 실제 렌더된 높이. measure 모디파이어가 채워줍니다. */
+  /**
+   * 실제 렌더된 크기. measure 모디파이어가 채워줍니다.
+   * 인라인 모드에서 노드가 펼쳐지면 폭·높이가 모두 변하는데, 이 값이 tracked 라
+   * 포트 위치와 연결선이 따로 손대지 않아도 같이 움직입니다.
+   */
+  @tracked width = NODE_WIDTH;
   @tracked height = 104;
 
   constructor({ id, type, x, y, data }) {
@@ -37,10 +42,6 @@ export class FlowNode {
 
   get title() {
     return this.def.label;
-  }
-
-  get width() {
-    return NODE_WIDTH;
   }
 
   get summary() {

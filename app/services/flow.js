@@ -3,8 +3,12 @@ import { tracked } from '@glimmer/tracking';
 import { FlowEdge, FlowNode, seedGraph, uid } from 'emberjs/utils/flow-graph';
 import { Viewport } from 'emberjs/utils/flow-geometry';
 import { GRID, NODE_TYPES, NODE_WIDTH } from 'emberjs/utils/node-types';
+import { DEFAULT_PANEL_MODE, isPanelMode } from 'emberjs/utils/panel-modes';
 
 const STORAGE_KEY = 'emberjs:flow-builder:v1';
+
+/** 설정 패널 표시 방식은 문서가 아니라 사용자 취향이라 따로 저장합니다. */
+const MODE_KEY = 'emberjs:flow-builder:panel-mode';
 
 /**
  * 플로우 문서 전체의 단일 소스.
@@ -19,8 +23,17 @@ export default class FlowService extends Service {
   /** { kind: 'node' | 'edge', id } 또는 null */
   @tracked selection = null;
 
+  /**
+   * 마지막으로 선택했던 대상. selection 과 달리 해제해도 비우지 않습니다.
+   * 드로어가 닫히는 애니메이션 동안 내용이 먼저 사라져 깜빡이는 걸 막습니다.
+   */
+  @tracked lastSelection = null;
+
   /** 직렬화 후 보여줄 JSON (모달). null이면 닫힘. */
   @tracked exported = null;
+
+  /** 'drawer' | 'popover' | 'modal' | 'docked' | 'inline' */
+  @tracked panelMode = DEFAULT_PANEL_MODE;
 
   viewport = new Viewport();
 
@@ -29,6 +42,29 @@ export default class FlowService extends Service {
   constructor() {
     super(...arguments);
     this.load();
+    this.loadPanelMode();
+  }
+
+  // ── 패널 표시 방식 ──────────────────────────────────────────────────
+
+  setPanelMode(mode) {
+    if (!isPanelMode(mode)) return;
+    this.panelMode = mode;
+    try {
+      localStorage.setItem(MODE_KEY, mode);
+    } catch {
+      // 저장이 막혀도 이번 세션 동안은 바뀐 모드로 씁니다.
+    }
+  }
+
+  loadPanelMode() {
+    let stored = null;
+    try {
+      stored = localStorage.getItem(MODE_KEY);
+    } catch {
+      stored = null;
+    }
+    if (isPanelMode(stored)) this.panelMode = stored;
   }
 
   // ── 조회 ────────────────────────────────────────────────────────────
@@ -132,6 +168,7 @@ export default class FlowService extends Service {
 
   select(kind, id) {
     this.selection = { kind, id };
+    this.lastSelection = this.selection;
   }
 
   clearSelection() {

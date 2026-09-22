@@ -6,6 +6,7 @@ import NodePalette from 'emberjs/components/node-palette';
 import FlowCanvas from 'emberjs/components/flow-canvas';
 import NodeInspector from 'emberjs/components/node-inspector';
 import windowKeydown from 'emberjs/modifiers/window-keydown';
+import { PANEL_MODES } from 'emberjs/utils/panel-modes';
 
 const EDITABLE = ['INPUT', 'TEXTAREA', 'SELECT'];
 
@@ -20,6 +21,19 @@ export default class FlowBuilder extends Component {
     const edges = this.flow.edges.length;
     return `노드 ${nodes}개 · 연결 ${edges}개`;
   }
+
+  get panelModes() {
+    return PANEL_MODES.map((mode) => ({
+      ...mode,
+      selected: mode.value === this.flow.panelMode,
+    }));
+  }
+
+  get panelModeHint() {
+    return PANEL_MODES.find((mode) => mode.value === this.flow.panelMode)?.hint;
+  }
+
+  onPanelModeChange = (event) => this.flow.setPanelMode(event.target.value);
 
   get statusClass() {
     if (this.flow.errorCount > 0) return 'status status--error';
@@ -98,6 +112,21 @@ export default class FlowBuilder extends Component {
         </div>
 
         <div class="builder__tools">
+          <div class="mode" title={{this.panelModeHint}}>
+            <span class="mode__label">설정 패널</span>
+            <select
+              class="mode__select"
+              aria-label="설정 패널 표시 방식"
+              {{on "change" this.onPanelModeChange}}
+            >
+              {{#each this.panelModes key="value" as |choice|}}
+                <option value={{choice.value}} selected={{choice.selected}}>
+                  {{choice.label}}
+                </option>
+              {{/each}}
+            </select>
+          </div>
+
           <span class={{this.statusClass}}>{{this.statusLabel}}</span>
           <button type="button" class="btn" {{on "click" this.showExport}}>JSON
             보기</button>

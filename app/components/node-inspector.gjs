@@ -1,206 +1,94 @@
 import Component from '@glimmer/component';
 import { service } from '@ember/service';
 import { on } from '@ember/modifier';
-import { eq, fn, not } from '@ember/helper';
-import { htmlSafe } from '@ember/template';
+import NodePanel from 'emberjs/components/node-panel';
 
 /**
- * 오른쪽 사이드바: 선택된 노드의 설정 폼.
+ * 캔버스 바깥에 뜨는 세 가지 모드를 담당합니다: 드로어 · 모달 · 고정 패널.
  *
- * 폼은 하드코딩되어 있지 않고 노드 타입의 `fields` 정의를 그대로 그립니다.
- * 새 노드 타입에 필드를 추가하면 여기 UI는 자동으로 따라옵니다.
+ * 팝오버는 캔버스 좌표가 필요해 FlowCanvas 가, 인라인은 노드 안이라
+ * FlowNode 가 각각 그립니다. 좌표계를 가진 쪽이 그리는 원칙입니다.
  */
 export default class NodeInspector extends Component {
   @service flow;
 
+  get mode() {
+    return this.flow.panelMode;
+  }
+
+  get isDrawer() {
+    return this.mode === 'drawer';
+  }
+
+  get isModal() {
+    return this.mode === 'modal';
+  }
+
+  get isDocked() {
+    return this.mode === 'docked';
+  }
+
+  get isOpen() {
+    return Boolean(this.flow.selection);
+  }
+
+  /**
+   * 드로어·모달은 닫히는 동안에도 직전 선택을 그립니다. 그러지 않으면
+   * 슬라이드가 끝나기 전에 내용이 먼저 비어서 깜빡입니다.
+   * 고정 패널은 애니메이션이 없으므로 현재 선택만 봅니다(없으면 빈 상태).
+   */
+  get shown() {
+    if (this.isDocked) return this.flow.selection;
+    return this.flow.selection ?? this.flow.lastSelection;
+  }
+
   get node() {
-    return this.flow.selectedNode;
+    if (this.shown?.kind !== 'node') return null;
+    return this.flow.nodeById(this.shown.id);
   }
 
-  get themeStyle() {
-    const def = this.node?.def;
-    return def
-      ? htmlSafe(`--accent: ${def.accent}; --tint: ${def.tint};`)
-      : null;
+  get edge() {
+    if (this.shown?.kind !== 'edge') return null;
+    return this.flow.edges.find((candidate) => candidate.id === this.shown.id);
   }
 
-  /** 필드 정의 + 현재 값을 미리 합쳐 두면 템플릿이 단순해집니다. */
-  get fields() {
-    const node = this.node;
-    if (!node) return [];
-
-    return node.def.fields.map((field) => {
-      const value = node.data[field.key] ?? '';
-      return {
-        ...field,
-        value,
-        options: field.options?.map((option) => ({
-          ...option,
-          selected: option.value === value,
-        })),
-      };
-    });
-  }
-
-  /** 출력 포트별 연결 상태 */
-  get connections() {
-    const node = this.node;
-    if (!node) return [];
-
-    return node.def.outputs.map((port) => {
-      const edge = this.flow.edges.find(
-        (candidate) =>
-          candidate.from === node.id && candidate.port === port.key,
-      );
-      return {
-        key: port.key,
-        label: port.label || '다음',
-        edge,
-        target: edge ? this.flow.nodeById(edge.to) : null,
-      };
-    });
-  }
-
-  update = (key, event) => {
-    const target = event.target;
-    const value =
-      target.type === 'number' ? Number(target.value) : target.value;
-    this.flow.updateNodeData(this.node, key, value);
-  };
-
-  remove = () => this.flow.removeNode(this.node.id);
-  duplicate = () => this.flow.duplicateNode(this.node.id);
-  disconnect = (edgeId) => this.flow.removeEdge(edgeId);
-  removeSelectedEdge = () => this.flow.removeEdge(this.flow.selectedEdge.id);
+  close = () => this.flow.clearSelection();
 
   <template>
-    <aside class="panel panel--right" aria-label="선택한 노드 설정">
-      {{#if this.node}}
-        <section class="panel__section" style={{this.themeStyle}}>
-          <header class="inspector__head">
-            <span class="inspector__icon">{{this.node.def.icon}}</span>
-            <div>
-              <h2 class="panel__title">{{this.node.def.label}}</h2>
-              <p class="panel__caption">{{this.node.def.hint}}</p>
-            </div>
-          </header>
+    {{#if this.isDrawer}}
+      <aside
+        class="shell-drawer {{if this.isOpen 'is-open'}}"
+        aria-label="선택한 항목 설정"
+      >
+        <NodePanel
+          @node={{this.node}}
+          @edge={{this.edge}}
+          @onClose={{this.close}}
+        />
+      </aside>
 
-          <div class="form">
-            {{#each this.fields key="key" as |field|}}
-              <label class="form__row">
-                <span class="form__label">{{field.label}}</span>
+    {{else if this.isModal}}
+      <div class="shell-modal {{if this.isOpen 'is-open'}}">
+        <button
+          type="button"
+          class="shell-modal__scrim"
+          aria-label="설정 닫기"
+          {{on "click" this.close}}
+        ></button>
+        <aside class="shell-modal__panel" aria-label="선택한 항목 설정">
+          <NodePanel
+            @node={{this.node}}
+            @edge={{this.edge}}
+            @onClose={{this.close}}
+          />
+        </aside>
+      </div>
 
-                {{#if (eq field.type "textarea")}}
-                  <textarea
-                    class="form__control"
-                    rows="4"
-                    placeholder={{field.placeholder}}
-                    value={{field.value}}
-                    {{on "input" (fn this.update field.key)}}
-                  ></textarea>
-                {{else if (eq field.type "select")}}
-                  <select
-                    class="form__control"
-                    {{on "change" (fn this.update field.key)}}
-                  >
-                    {{! 블록 변수를 option 으로 두면 <option> 엘리먼트와 이름이 겹칩니다. }}
-                    {{#each field.options key="value" as |choice|}}
-                      <option
-                        value={{choice.value}}
-                        selected={{choice.selected}}
-                      >
-                        {{choice.label}}
-                      </option>
-                    {{/each}}
-                  </select>
-                {{else if (eq field.type "number")}}
-                  <input
-                    class="form__control"
-                    type="number"
-                    min={{field.min}}
-                    value={{field.value}}
-                    {{on "input" (fn this.update field.key)}}
-                  />
-                {{else}}
-                  <input
-                    class="form__control"
-                    type="text"
-                    placeholder={{field.placeholder}}
-                    value={{field.value}}
-                    {{on "input" (fn this.update field.key)}}
-                  />
-                {{/if}}
-
-                {{#if field.help}}
-                  <small class="form__help">{{field.help}}</small>
-                {{/if}}
-              </label>
-            {{/each}}
-          </div>
-        </section>
-
-        {{#if this.connections.length}}
-          <section class="panel__section">
-            <h3 class="panel__subtitle">연결</h3>
-            <ul class="links">
-              {{#each this.connections key="key" as |link|}}
-                <li class="links__row">
-                  <span class="links__port">{{link.label}}</span>
-                  {{#if link.target}}
-                    <span class="links__target">{{link.target.def.icon}}
-                      {{link.target.title}}</span>
-                    <button
-                      type="button"
-                      class="links__cut"
-                      title="연결 끊기"
-                      {{on "click" (fn this.disconnect link.edge.id)}}
-                    >×</button>
-                  {{else}}
-                    <span class="links__target links__target--empty">연결 안 됨</span>
-                  {{/if}}
-                </li>
-              {{/each}}
-            </ul>
-          </section>
-        {{/if}}
-
-        <section class="panel__section panel__actions">
-          <button
-            type="button"
-            class="btn btn--grow"
-            {{on "click" this.duplicate}}
-          >복제</button>
-          <button
-            type="button"
-            class="btn btn--grow btn--danger"
-            disabled={{not this.node.def.removable}}
-            {{on "click" this.remove}}
-          >삭제</button>
-        </section>
-
-      {{else if this.flow.selectedEdge}}
-        <section class="panel__section">
-          <h2 class="panel__title">연결선</h2>
-          <p class="panel__caption">
-            {{this.flow.selectedEdge.from}}
-            →
-            {{this.flow.selectedEdge.to}}
-          </p>
-          <button
-            type="button"
-            class="btn btn--danger"
-            {{on "click" this.removeSelectedEdge}}
-          >연결 삭제</button>
-        </section>
-
-      {{else}}
-        <section class="panel__section">
-          <h2 class="panel__title">설정</h2>
-          <p class="panel__empty">
-            노드를 선택하면 여기에서 내용을 편집할 수 있습니다.
-          </p>
-        </section>
-      {{/if}}
-    </aside>
+    {{else if this.isDocked}}
+      <aside class="shell-docked" aria-label="선택한 항목 설정">
+        {{! 고정 패널에는 닫기 버튼이 없습니다 — 늘 자리를 지키는 게 목적이라. }}
+        <NodePanel @node={{this.node}} @edge={{this.edge}} />
+      </aside>
+    {{/if}}
   </template>
 }

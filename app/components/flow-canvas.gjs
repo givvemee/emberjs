@@ -6,6 +6,7 @@ import { eq } from '@ember/helper';
 import { htmlSafe } from '@ember/template';
 import FlowNode from 'emberjs/components/flow-node';
 import FlowEdge from 'emberjs/components/flow-edge';
+import NodePopover from 'emberjs/components/node-popover';
 import measure from 'emberjs/modifiers/measure';
 import { bezierPath, EDGE_PLANE } from 'emberjs/utils/flow-geometry';
 import { DND_TYPE, GRID, NODE_WIDTH } from 'emberjs/utils/node-types';
@@ -83,6 +84,11 @@ export default class FlowCanvas extends Component {
 
   get zoomLabel() {
     return `${Math.round(this.viewport.zoom * 100)}%`;
+  }
+
+  /** 팝오버는 캔버스 좌표가 필요해서 다른 모드와 달리 여기서 그립니다. */
+  get isPopoverMode() {
+    return this.flow.panelMode === 'popover';
   }
 
   get cursorClass() {
@@ -265,6 +271,9 @@ export default class FlowCanvas extends Component {
   }
 
   onWheel = (event) => {
+    // 팝오버·인라인 폼 위에서는 캔버스가 휠을 가로채지 않고 그대로 스크롤되게 둡니다.
+    if (event.target.closest?.('[data-canvas-ui]')) return;
+
     event.preventDefault();
     const rect = event.currentTarget.getBoundingClientRect();
     const pointerX = event.clientX - rect.left;
@@ -369,6 +378,10 @@ export default class FlowCanvas extends Component {
           />
         {{/each}}
       </div>
+
+      {{#if this.isPopoverMode}}
+        <NodePopover />
+      {{/if}}
 
       <div class="flow-zoom" data-canvas-ui>
         <button
