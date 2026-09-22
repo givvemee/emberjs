@@ -1,0 +1,43 @@
+{
+  "$schema": "https://www.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "target": "es2023",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+
+    // 타입만 쓰는 import 는 `import type` 으로 명시해야 합니다. 번들러가
+    // 타입 import 를 런타임 코드로 잘못 남기는 일을 막습니다.
+    "verbatimModuleSyntax": true,
+    "allowSyntheticDefaultImports": true,
+
+    // 컴파일은 Babel 이 합니다. tsc/glint 는 타입 검사만 담당합니다.
+    // 특히 데코레이터는 Babel 쪽 구현을 써야 런타임이 깨지지 않습니다.
+    "noEmit": true,
+    "noEmitOnError": false,
+    "experimentalDecorators": true,
+
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noPropertyAccessFromIndexSignature": true,
+
+    // 의존성 전체를 타입 검사하면 대부분 손댈 수 없는 노이즈만 나옵니다.
+    "skipLibCheck": true,
+    "allowJs": false,
+
+    // ember-source 가 자체 타입을 번들로 제공합니다.
+    "types": ["ember-source/types"],
+
+    // 앱 코드가 쓰는 `emberjs/...` 경로를 package.json exports 와 맞춥니다.
+    "paths": {
+      "emberjs/tests/*": ["./tests/*"],
+      "emberjs/*": ["./app/*"]
+    }
+  },
+
+  // .gts 안의 <template> 을 타입 검사하도록 Glint 환경을 지정합니다.
+  "glint": {
+    "environment": ["ember-template-imports"]
+  },
+
+  "include": ["app/**/*", "tests/**/*", "types/**/*"]
+}

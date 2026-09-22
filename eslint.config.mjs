@@ -23,6 +23,7 @@ import qunit from 'eslint-plugin-qunit';
 import n from 'eslint-plugin-n';
 
 import babelParser from '@babel/eslint-parser/experimental-worker';
+import tseslint from 'typescript-eslint';
 
 const esmParserOptions = {
   ecmaFeatures: { modules: true },
@@ -59,9 +60,38 @@ export default defineConfig([
       },
     },
   },
+  /**
+   * TypeScript. .gts 는 ember 플러그인이 템플릿 태그를 전처리하고,
+   * 타입 규칙은 typescript-eslint 가 맡습니다.
+   */
+  ...tseslint.configs.recommended.map((config) => ({
+    ...config,
+    files: ['**/*.{ts,gts}'],
+  })),
+  {
+    files: ['**/*.{ts,gts}'],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+      },
+    },
+    rules: {
+      // 쓰지 않는 인자는 밑줄로 표시하는 관례를 허용합니다.
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
+    },
+  },
+  /**
+   * .gts 는 ember-eslint-parser 로 되돌립니다. 위의 typescript-eslint 설정이
+   * 파서까지 바꿔버리면 <template> 태그를 파싱하지 못합니다.
+   * flat config 는 나중에 오는 쪽이 이기므로 순서가 중요합니다.
+   */
+  ember.configs.gts,
   {
     ...qunit.configs.recommended,
-    files: ['tests/**/*-test.{js,gjs}'],
+    files: ['tests/**/*-test.{js,gjs,ts,gts}'],
     plugins: {
       qunit,
     },

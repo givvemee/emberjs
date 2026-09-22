@@ -27,12 +27,14 @@
     "lint:js": "eslint . --cache",
     "lint:js:fix": "eslint . --fix",
     "start": "vite",
-    "test": "vite build --mode development && ember test --path dist"
+    "test": "vite build --mode development && ember test --path dist",
+    "lint:types": "glint"
   },
   "devDependencies": {
     "@babel/core": "^7.29.7",
     "@babel/eslint-parser": "^7.29.7",
     "@babel/plugin-transform-runtime": "^7.29.7",
+    "@babel/plugin-transform-typescript": "^7.29.9",
     "@babel/runtime": "^7.29.7",
     "@ember/optional-features": "^3.0.0",
     "@ember/string": "^4.0.1",
@@ -47,7 +49,11 @@
     "@embroider/vite": "^1.7.9",
     "@eslint/js": "^9.39.5",
     "@glimmer/component": "^2.1.1",
+    "@glint/core": "^1.5.2",
+    "@glint/environment-ember-template-imports": "^1.5.2",
+    "@glint/template": "^1.9.0",
     "@rollup/plugin-babel": "^7.1.0",
+    "@types/qunit": "^2.19.14",
     "@warp-drive/core": "~5.8.2",
     "@warp-drive/ember": "~5.8.2",
     "@warp-drive/json-api": "~5.8.2",
@@ -81,6 +87,8 @@
     "stylelint": "^17.14.1",
     "stylelint-config-standard": "^40.0.0",
     "testem": "^3.20.1",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.70.1",
     "vite": "^8.2.1"
   },
   "engines": {
