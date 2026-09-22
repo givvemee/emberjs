@@ -6,7 +6,19 @@ export const MAX_ZOOM = 2;
 /** SVG 엣지 레이어가 쓰는 논리 캔버스 크기. 좌표계를 음수 영역까지 확장하기 위한 값. */
 export const EDGE_PLANE = 40000;
 
-export function clamp(value, min, max) {
+/** 플로우 좌표계 위의 한 점 */
+export interface Point {
+  x: number;
+  y: number;
+}
+
+/** 화면에 배치된 무언가. Viewport.fit / centerOn 이 이만큼만 요구합니다. */
+export interface Boxed extends Point {
+  width: number;
+  height: number;
+}
+
+export function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
@@ -14,7 +26,7 @@ export function clamp(value, min, max) {
  * 위→아래로 흐르는 3차 베지어 경로.
  * 출발점에서 아래로, 도착점에서 위로 핸들을 뻗어 자연스러운 S 곡선을 만듭니다.
  */
-export function bezierPath(source, target) {
+export function bezierPath(source: Point, target: Point): string {
   const dy = Math.abs(target.y - source.y);
   const curve = Math.max(36, dy * 0.5);
   return [
@@ -39,24 +51,28 @@ export class Viewport {
   @tracked width = 0;
   @tracked height = 0;
 
-  toFlow(screenX, screenY) {
+  toFlow(screenX: number, screenY: number): Point {
     return {
       x: (screenX - this.x) / this.zoom,
       y: (screenY - this.y) / this.zoom,
     };
   }
 
-  get center() {
+  get center(): Point {
     return this.toFlow(this.width / 2, this.height / 2);
   }
 
-  panBy(dx, dy) {
+  panBy(dx: number, dy: number): void {
     this.x += dx;
     this.y += dy;
   }
 
   /** 주어진 화면상의 한 점을 고정한 채 확대/축소합니다 (커서 기준 줌). */
-  zoomTo(nextZoom, screenX = this.width / 2, screenY = this.height / 2) {
+  zoomTo(
+    nextZoom: number,
+    screenX: number = this.width / 2,
+    screenY: number = this.height / 2,
+  ): void {
     const zoom = clamp(nextZoom, MIN_ZOOM, MAX_ZOOM);
     const anchor = this.toFlow(screenX, screenY);
     this.x = screenX - anchor.x * zoom;
@@ -64,18 +80,18 @@ export class Viewport {
     this.zoom = zoom;
   }
 
-  zoomBy(factor) {
+  zoomBy(factor: number): void {
     this.zoomTo(this.zoom * factor);
   }
 
-  centerOn(node) {
+  centerOn(node: Boxed): void {
     if (!this.width) return;
     this.x = this.width / 2 - (node.x + node.width / 2) * this.zoom;
     this.y = this.height / 2 - (node.y + node.height / 2) * this.zoom;
   }
 
   /** 모든 노드가 한 화면에 들어오도록 맞춥니다. */
-  fit(nodes, padding = 72) {
+  fit(nodes: readonly Boxed[], padding = 72): void {
     if (!nodes.length || !this.width || !this.height) return;
 
     let minX = Infinity;

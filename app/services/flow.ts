@@ -1,14 +1,51 @@
 import Service from '@ember/service';
+import type Owner from '@ember/owner';
 import { tracked } from '@glimmer/tracking';
-import { FlowEdge, FlowNode, seedGraph, uid } from 'emberjs/utils/flow-graph';
+import {
+  FlowEdge,
+  FlowNode,
+  seedGraph,
+  uid,
+  type SerializedEdge,
+  type SerializedNode,
+} from 'emberjs/utils/flow-graph';
 import { Viewport } from 'emberjs/utils/flow-geometry';
-import { GRID, NODE_TYPES, NODE_WIDTH } from 'emberjs/utils/node-types';
-import { DEFAULT_PANEL_MODE, isPanelMode } from 'emberjs/utils/panel-modes';
+import {
+  GRID,
+  NODE_WIDTH,
+  isNodeType,
+  type NodeType,
+} from 'emberjs/utils/node-types';
+import {
+  DEFAULT_PANEL_MODE,
+  isPanelMode,
+  type PanelMode,
+} from 'emberjs/utils/panel-modes';
 
 const STORAGE_KEY = 'emberjs:flow-builder:v1';
 
 /** 설정 패널 표시 방식은 문서가 아니라 사용자 취향이라 따로 저장합니다. */
 const MODE_KEY = 'emberjs:flow-builder:panel-mode';
+
+export type SelectionKind = 'node' | 'edge';
+
+export interface Selection {
+  kind: SelectionKind;
+  id: string;
+}
+
+export interface Issue {
+  id: string;
+  level: 'error' | 'warn';
+  message: string;
+  nodeId?: string;
+}
+
+export interface SerializedGraph {
+  version: number;
+  nodes: SerializedNode[];
+  edges: SerializedEdge[];
+}
 
 /**
  * 플로우 문서 전체의 단일 소스.
@@ -17,37 +54,35 @@ const MODE_KEY = 'emberjs:flow-builder:panel-mode';
  * 그래프 규칙(자기 연결 금지, 출력 포트당 1개 등)은 전부 이 안에 있습니다.
  */
 export default class FlowService extends Service {
-  @tracked nodes = [];
-  @tracked edges = [];
+  @tracked nodes: FlowNode[] = [];
+  @tracked edges: FlowEdge[] = [];
 
-  /** { kind: 'node' | 'edge', id } 또는 null */
-  @tracked selection = null;
+  @tracked selection: Selection | null = null;
 
   /**
    * 마지막으로 선택했던 대상. selection 과 달리 해제해도 비우지 않습니다.
    * 드로어가 닫히는 애니메이션 동안 내용이 먼저 사라져 깜빡이는 걸 막습니다.
    */
-  @tracked lastSelection = null;
+  @tracked lastSelection: Selection | null = null;
 
   /** 직렬화 후 보여줄 JSON (모달). null이면 닫힘. */
-  @tracked exported = null;
+  @tracked exported: string | null = null;
 
-  /** 'drawer' | 'popover' | 'modal' | 'docked' | 'inline' */
-  @tracked panelMode = DEFAULT_PANEL_MODE;
+  @tracked panelMode: PanelMode = DEFAULT_PANEL_MODE;
 
   viewport = new Viewport();
 
-  #saveTimer = null;
+  #saveTimer: ReturnType<typeof setTimeout> | null = null;
 
-  constructor() {
-    super(...arguments);
+  constructor(owner: Owner) {
+    super(owner);
     this.load();
     this.loadPanelMode();
   }
 
   // ── 패널 표시 방식 ──────────────────────────────────────────────────
 
-  setPanelMode(mode) {
+  setPanelMode(mode: string): void {
     if (!isPanelMode(mode)) return;
     this.panelMode = mode;
     try {
@@ -57,8 +92,8 @@ export default class FlowService extends Service {
     }
   }
 
-  loadPanelMode() {
-    let stored = null;
+  loadPanelMode(): void {
+    let stored: string | null = null;
     try {
       stored = localStorage.getItem(MODE_KEY);
     } catch {
@@ -69,41 +104,51 @@ export default class FlowService extends Service {
 
   // ── 조회 ────────────────────────────────────────────────────────────
 
-  nodeById(id) {
+  nodeById(id: string | null | undefined): FlowNode | null {
+    if (!id) return null;
     return this.nodes.find((node) => node.id === id) ?? null;
   }
 
-  get selectedNode() {
+  edgeById(id: string | null | undefined): FlowEdge | null {
+    if (!id) return null;
+    return this.edges.find((edge) => edge.id === id) ?? null;
+  }
+
+  get selectedNode(): FlowNode | null {
     return this.selection?.kind === 'node'
       ? this.nodeById(this.selection.id)
       : null;
   }
 
-  get selectedEdge() {
-    if (this.selection?.kind !== 'edge') return null;
-    return this.edges.find((edge) => edge.id === this.selection.id) ?? null;
+  get selectedEdge(): FlowEdge | null {
+    return this.selection?.kind === 'edge'
+      ? this.edgeById(this.selection.id)
+      : null;
   }
 
-  outgoing(nodeId) {
+  outgoing(nodeId: string): FlowEdge[] {
     return this.edges.filter((edge) => edge.from === nodeId);
   }
 
-  isPortConnected(nodeId, port) {
+  isPortConnected(nodeId: string, port: string): boolean {
     return this.edges.some(
       (edge) => edge.from === nodeId && edge.port === port,
     );
   }
 
   /** 해당 노드가 연결을 받을 수 있는지 (드래그 중 하이라이트 판단에도 사용) */
-  canConnectTo(fromId, toId) {
+  canConnectTo(
+    fromId: string | null | undefined,
+    toId: string | null | undefined,
+  ): boolean {
     if (!fromId || !toId || fromId === toId) return false;
     return Boolean(this.nodeById(toId)?.def.hasInput);
   }
 
   // ── 편집 ────────────────────────────────────────────────────────────
 
-  addNode(type, x, y) {
-    if (!NODE_TYPES[type]) return null;
+  addNode(type: string, x: number, y: number): FlowNode | null {
+    if (!isNodeType(type)) return null;
 
     const node = new FlowNode({ type, x: snap(x), y: snap(y) });
     this.nodes = [...this.nodes, node];
@@ -113,12 +158,12 @@ export default class FlowService extends Service {
   }
 
   /** 팔레트 클릭으로 추가할 때: 현재 보이는 영역 한가운데에 놓습니다. */
-  addNodeAtCenter(type) {
+  addNodeAtCenter(type: NodeType): FlowNode | null {
     const center = this.viewport.center;
     return this.addNode(type, center.x - NODE_WIDTH / 2, center.y - 52);
   }
 
-  removeNode(id) {
+  removeNode(id: string): void {
     const node = this.nodeById(id);
     if (!node || !node.def.removable) return;
 
@@ -134,7 +179,7 @@ export default class FlowService extends Service {
    * 연결을 만듭니다. 출력 포트 하나당 나가는 연결은 최대 1개이므로
    * 같은 포트에 이미 연결이 있으면 새 것으로 교체합니다.
    */
-  connect(fromId, port, toId) {
+  connect(fromId: string, port: string, toId: string): FlowEdge | null {
     if (!this.canConnectTo(fromId, toId)) return null;
 
     const duplicate = this.edges.some(
@@ -151,7 +196,7 @@ export default class FlowService extends Service {
     return edge;
   }
 
-  removeEdge(id) {
+  removeEdge(id: string): void {
     this.edges = this.edges.filter((edge) => edge.id !== id);
     if (this.selection?.kind === 'edge' && this.selection.id === id) {
       this.selection = null;
@@ -159,30 +204,36 @@ export default class FlowService extends Service {
     this.persist();
   }
 
-  updateNodeData(node, key, value) {
+  updateNodeData(
+    node: FlowNode | null,
+    key: string,
+    value: string | number,
+  ): void {
+    if (!node) return;
     node.update(key, value);
     this.persist();
   }
 
   // ── 선택 ────────────────────────────────────────────────────────────
 
-  select(kind, id) {
+  select(kind: SelectionKind, id: string): void {
     this.selection = { kind, id };
     this.lastSelection = this.selection;
   }
 
-  clearSelection() {
+  clearSelection(): void {
     this.selection = null;
   }
 
-  deleteSelection() {
+  deleteSelection(): void {
     if (this.selection?.kind === 'node') this.removeNode(this.selection.id);
-    else if (this.selection?.kind === 'edge')
+    else if (this.selection?.kind === 'edge') {
       this.removeEdge(this.selection.id);
+    }
   }
 
   /** 검증 목록에서 항목을 눌렀을 때: 선택하고 화면 가운데로 옮깁니다. */
-  focusNode(id) {
+  focusNode(id: string): void {
     const node = this.nodeById(id);
     if (!node) return;
     this.select('node', id);
@@ -191,8 +242,8 @@ export default class FlowService extends Service {
 
   // ── 검증 ────────────────────────────────────────────────────────────
 
-  get issues() {
-    const issues = [];
+  get issues(): Issue[] {
+    const issues: Issue[] = [];
     const starts = this.nodes.filter((node) => node.type === 'start');
 
     if (starts.length === 0) {
@@ -210,11 +261,11 @@ export default class FlowService extends Service {
     }
 
     // 시작점에서 도달 가능한 노드 수집 (BFS)
-    const reachable = new Set();
+    const reachable = new Set<string>();
     const queue = starts.map((node) => node.id);
     while (queue.length) {
       const id = queue.shift();
-      if (reachable.has(id)) continue;
+      if (!id || reachable.has(id)) continue;
       reachable.add(id);
       for (const edge of this.edges) {
         if (edge.from === id) queue.push(edge.to);
@@ -246,7 +297,7 @@ export default class FlowService extends Service {
 
       for (const field of node.def.fields) {
         if (!field.required) continue;
-        const value = node.data[field.key];
+        const value = (node.data as Record<string, unknown>)[field.key];
         if (
           value === undefined ||
           value === null ||
@@ -265,13 +316,13 @@ export default class FlowService extends Service {
     return issues;
   }
 
-  get errorCount() {
+  get errorCount(): number {
     return this.issues.filter((issue) => issue.level === 'error').length;
   }
 
   // ── 직렬화 / 저장 ───────────────────────────────────────────────────
 
-  toJSON() {
+  toJSON(): SerializedGraph {
     return {
       version: 1,
       nodes: this.nodes.map((node) => node.toJSON()),
@@ -283,7 +334,7 @@ export default class FlowService extends Service {
    * 저장은 debounce 합니다. 드래그 중에는 pointermove 마다 좌표가 바뀌므로
    * 매번 직렬화하면 낭비입니다.
    */
-  persist() {
+  persist(): void {
     if (this.#saveTimer) clearTimeout(this.#saveTimer);
     this.#saveTimer = setTimeout(() => {
       this.#saveTimer = null;
@@ -295,8 +346,8 @@ export default class FlowService extends Service {
     }, 250);
   }
 
-  load() {
-    let raw = null;
+  load(): void {
+    let raw: string | null = null;
     try {
       raw = localStorage.getItem(STORAGE_KEY);
     } catch {
@@ -305,8 +356,10 @@ export default class FlowService extends Service {
 
     if (raw) {
       try {
-        const parsed = JSON.parse(raw);
-        const nodes = (parsed.nodes ?? []).map((data) => new FlowNode(data));
+        const parsed = JSON.parse(raw) as Partial<SerializedGraph>;
+        const nodes = (parsed.nodes ?? [])
+          .filter((data) => isNodeType(data.type))
+          .map((data) => new FlowNode(data));
         const ids = new Set(nodes.map((node) => node.id));
         // 노드가 사라진 엣지는 버립니다 (손상된 저장본 방어).
         const edges = (parsed.edges ?? [])
@@ -324,7 +377,7 @@ export default class FlowService extends Service {
     this.reset();
   }
 
-  reset() {
+  reset(): void {
     const { nodes, edges } = seedGraph();
     this.nodes = nodes;
     this.edges = edges;
@@ -332,7 +385,7 @@ export default class FlowService extends Service {
     this.persist();
   }
 
-  clear() {
+  clear(): void {
     const start = new FlowNode({ type: 'start', x: 320, y: 120 });
     this.nodes = [start];
     this.edges = [];
@@ -340,7 +393,7 @@ export default class FlowService extends Service {
     this.persist();
   }
 
-  duplicateNode(id) {
+  duplicateNode(id: string): void {
     const source = this.nodeById(id);
     if (!source) return;
     const copy = new FlowNode({
@@ -357,15 +410,21 @@ export default class FlowService extends Service {
 
   // ── JSON 보기 ───────────────────────────────────────────────────────
 
-  showExport() {
+  showExport(): void {
     this.exported = JSON.stringify(this.toJSON(), null, 2);
   }
 
-  hideExport() {
+  hideExport(): void {
     this.exported = null;
   }
 }
 
-function snap(value) {
+function snap(value: number): number {
   return Math.round(value / GRID) * GRID;
+}
+
+declare module '@ember/service' {
+  interface Registry {
+    flow: FlowService;
+  }
 }

@@ -2,6 +2,9 @@
  * 노드 설정 UI를 어떤 형태로 띄울지.
  *
  * 내용(NodeForm)은 모든 모드가 공유하고, 각 모드는 위치와 등장 방식만 다릅니다.
+ *
+ * 이 배열이 단일 출처입니다. 여기에 항목을 추가하면 PanelMode 유니온이 자동으로
+ * 넓어지고, 모드를 다루는 모든 분기에서 누락이 타입 에러로 잡힙니다.
  */
 export const PANEL_MODES = [
   {
@@ -29,10 +32,20 @@ export const PANEL_MODES = [
     label: '노드 인라인',
     hint: '노드 박스가 펼쳐져 그 안에서 편집',
   },
-];
+] as const;
 
-export const DEFAULT_PANEL_MODE = 'drawer';
+/** 'drawer' | 'popover' | 'modal' | 'docked' | 'inline' */
+export type PanelMode = (typeof PANEL_MODES)[number]['value'];
 
-export function isPanelMode(value) {
+/** 셀렉트에 그릴 때 쓰는 형태 (selected 플래그를 덧붙이므로 읽기 전용이 아님) */
+export interface PanelModeOption {
+  value: PanelMode;
+  label: string;
+  hint: string;
+}
+
+export const DEFAULT_PANEL_MODE: PanelMode = 'drawer';
+
+export function isPanelMode(value: unknown): value is PanelMode {
   return PANEL_MODES.some((mode) => mode.value === value);
 }
