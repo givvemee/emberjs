@@ -1,1 +1,1279 @@
-/* Ember supports plain CSS out of the box. More info: https://cli.emberjs.com/release/advanced-use/stylesheets/ */
+:root {
+  --bg: #f4f5f7;
+  --surface: #fff;
+  --border: #e4e7eb;
+  --border-strong: #d2d7de;
+  --text: #16181d;
+  --muted: #6b7280;
+  --primary: #2563eb;
+  --danger: #dc2626;
+  --warn: #d97706;
+  --ok: #059669;
+  --radius: 10px;
+  --shadow-sm: 0 1px 2px rgb(16 24 40 / 6%), 0 1px 3px rgb(16 24 40 / 8%);
+  --shadow-md: 0 4px 12px rgb(16 24 40 / 10%);
+  --shadow-lg: 0 16px 40px rgb(16 24 40 / 18%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family:
+    -apple-system, BlinkMacSystemFont, Pretendard, "Apple SD Gothic Neo",
+    "Noto Sans KR", "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── 공통 요소 ──────────────────────────────────────────────────────── */
+
+.btn {
+  padding: 6px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    border-color 0.12s;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn:hover:not(:disabled) {
+  background: #f3f4f6;
+  border-color: #b9c0c9;
+}
+
+.btn--primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.btn--primary:hover:not(:disabled) {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+.btn--danger {
+  color: var(--danger);
+  border-color: #f3c6c6;
+}
+
+.btn--danger:hover:not(:disabled) {
+  background: #fef2f2;
+  border-color: #eaa5a5;
+}
+
+.badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: #eef0f3;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.status {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status--ok {
+  background: #ecfdf5;
+  color: var(--ok);
+}
+
+.status--warn {
+  background: #fffbeb;
+  color: var(--warn);
+}
+
+.status--error {
+  background: #fef2f2;
+  color: var(--danger);
+}
+
+/* ── 전체 레이아웃 ──────────────────────────────────────────────────── */
+
+.builder {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.builder__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-shrink: 0;
+  height: 56px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.builder__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.builder__logo {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--text);
+  color: #fff;
+  font-size: 15px;
+}
+
+.builder__brand h1 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.builder__brand p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.builder__tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.builder__body {
+  position: relative; /* 드로어의 기준 박스 */
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden; /* 닫힌 드로어가 화면 밖으로 삐져나가지 않도록 */
+}
+
+/* ── 사이드 패널 ────────────────────────────────────────────────────── */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  width: 272px;
+  overflow-y: auto;
+  background: var(--surface);
+}
+
+.panel--left {
+  border-right: 1px solid var(--border);
+}
+
+.panel__section {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.panel__section--grow {
+  flex: 1;
+  border-bottom: none;
+}
+
+.panel__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.panel__subtitle {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.panel__caption {
+  margin: 4px 0 12px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.panel__empty {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.panel__empty--ok {
+  color: var(--ok);
+}
+
+.btn--grow {
+  flex: 1;
+}
+
+/* 상단 툴바의 패널 모드 전환 */
+.mode {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 3px 3px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #f7f8fa;
+}
+
+.mode__label {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.mode__select {
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* ── 노드 팔레트 ────────────────────────────────────────────────────── */
+
+.palette {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.palette__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font: inherit;
+  text-align: left;
+  cursor: grab;
+  transition:
+    border-color 0.12s,
+    box-shadow 0.12s,
+    transform 0.12s;
+}
+
+.palette__item:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-sm);
+}
+
+.palette__item:active {
+  cursor: grabbing;
+  transform: scale(0.99);
+}
+
+.palette__icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--tint);
+  color: var(--accent);
+  font-size: 13px;
+}
+
+.palette__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.palette__text strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.palette__text small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+/* ── 검증 목록 ──────────────────────────────────────────────────────── */
+
+.issues {
+  display: grid;
+  gap: 2px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.issues__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 8px;
+  border: none;
+  border-radius: 7px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.issues__item:hover {
+  background: #f3f4f6;
+}
+
+.issues__dot {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  margin-top: 6px;
+  border-radius: 50%;
+}
+
+.issues__item--error .issues__dot {
+  background: var(--danger);
+}
+
+.issues__item--warn .issues__dot {
+  background: var(--warn);
+}
+
+/* ── 캔버스 ─────────────────────────────────────────────────────────── */
+
+.flow-canvas {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  background-color: var(--bg);
+  background-image: radial-gradient(circle, #d5d9e0 1px, transparent 1px);
+  cursor: default;
+  touch-action: none;
+  user-select: none;
+}
+
+.flow-canvas.is-panning {
+  cursor: grabbing;
+}
+
+.flow-canvas.is-moving {
+  cursor: move;
+}
+
+.flow-canvas.is-connecting {
+  cursor: crosshair;
+}
+
+.flow-canvas__content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  transform-origin: 0 0;
+}
+
+/* 좌표계를 음수 영역까지 쓰기 위해 크게 잡고 좌상단으로 밀어 둡니다. */
+.flow-canvas__edges {
+  position: absolute;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.flow-canvas__draft {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+}
+
+.flow-canvas__hint {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  margin: 0;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgb(22 24 29 / 66%);
+  color: #fff;
+  font-size: 11px;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.flow-zoom {
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.flow-zoom button {
+  min-width: 28px;
+  height: 26px;
+  padding: 0 6px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.flow-zoom button:hover {
+  background: #f3f4f6;
+}
+
+.flow-zoom__level {
+  font-size: 12px !important;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.flow-zoom__sep {
+  width: 1px;
+  height: 16px;
+  margin: 0 2px;
+  background: var(--border);
+}
+
+/* ── 노드 ───────────────────────────────────────────────────────────── */
+
+.flow-node {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* 펼친 노드는 이웃 노드 위로 올라와야 폼이 가려지지 않습니다. */
+.flow-node.is-expanded {
+  z-index: 6;
+}
+
+/*
+ * 폭은 여기서만 정하고, measure 모디파이어가 그 값을 node.width 로 되읽습니다.
+ * 인라인 모드로 펼쳐져 폭이 변하면 포트 위치와 연결선이 알아서 따라옵니다.
+ */
+.flow-node__frame {
+  position: relative;
+  width: 248px;
+  padding: 10px 12px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  transition:
+    box-shadow 0.12s,
+    border-color 0.12s;
+}
+
+.flow-node:hover .flow-node__frame {
+  box-shadow: var(--shadow-md);
+}
+
+.flow-node.is-expanded .flow-node__frame {
+  width: 340px;
+  box-shadow: var(--shadow-lg);
+}
+
+.flow-node.is-selected .flow-node__frame {
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 2px var(--accent),
+    var(--shadow-md);
+}
+
+.flow-node.is-drop-target .flow-node__frame {
+  border-color: var(--primary);
+  border-style: dashed;
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 18%);
+}
+
+.flow-node__head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 6px;
+}
+
+.flow-node__icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: var(--tint);
+  color: var(--accent);
+  font-size: 11px;
+}
+
+.flow-node__title {
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.flow-node__collapse {
+  width: 22px;
+  height: 22px;
+  margin-left: auto;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.flow-node__collapse:hover {
+  background: #f3f4f6;
+  color: var(--text);
+}
+
+.flow-node__summary {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0;
+  color: var(--text);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+/* 인라인 모드에서 노드 안에 펼쳐지는 폼 */
+.flow-node__editor {
+  margin-top: 4px;
+  cursor: default;
+  user-select: text;
+}
+
+.flow-node__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+/* ── 포트 ───────────────────────────────────────────────────────────── */
+
+.flow-port {
+  position: absolute;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  margin-left: -13px;
+}
+
+.flow-port--in {
+  top: -13px;
+  left: 50%;
+}
+
+.flow-port--out {
+  bottom: -13px;
+  cursor: crosshair;
+}
+
+.flow-port__dot {
+  width: 11px;
+  height: 11px;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  background: var(--surface);
+  transition:
+    transform 0.12s,
+    background 0.12s;
+}
+
+.flow-port--out.is-connected .flow-port__dot {
+  background: var(--accent);
+}
+
+.flow-port--out:hover .flow-port__dot {
+  background: var(--accent);
+  transform: scale(1.35);
+}
+
+.flow-port__label {
+  position: absolute;
+  top: 24px;
+  padding: 1px 7px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ── 엣지 ───────────────────────────────────────────────────────────── */
+
+.flow-edge__hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 18;
+  cursor: pointer;
+  pointer-events: stroke;
+}
+
+.flow-edge__line {
+  fill: none;
+  stroke: #9aa2ae;
+  stroke-width: 2;
+  transition: stroke 0.12s;
+  pointer-events: none;
+}
+
+.flow-edge:hover .flow-edge__line {
+  stroke: #6b7280;
+}
+
+.flow-edge.is-selected .flow-edge__line {
+  stroke: var(--primary);
+  stroke-width: 2.5;
+}
+
+/* ── 설정 패널: 공통 내용 ───────────────────────────────────────────── */
+
+/*
+ * 드로어 · 모달 · 고정 패널 · 팝오버가 모두 같은 내용(NodePanel)을 씁니다.
+ * 아래 node-panel__* 는 껍데기와 무관한 내부 레이아웃입니다.
+ */
+.node-panel__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex-shrink: 0;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.node-panel__icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--tint, #f1f3f5);
+  color: var(--accent, var(--muted));
+  font-size: 13px;
+}
+
+.node-panel__heading {
+  flex: 1;
+  min-width: 0;
+}
+
+.node-panel__title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.node-panel__hint {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.node-panel__close {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 7px;
+  background: none;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.node-panel__close:hover {
+  background: #f3f4f6;
+  color: var(--text);
+}
+
+/* 내용이 길어지면 여기만 스크롤하고 머리말·바닥글은 고정됩니다. */
+.node-panel__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.node-panel__body--empty {
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.node-panel__foot {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 14px 16px;
+  border-top: 1px solid var(--border);
+}
+
+.links-block {
+  margin-top: 18px;
+}
+
+/* ── 모드 1: 드로어 ─────────────────────────────────────────────────── */
+
+/*
+ * 캔버스를 밀어내지 않고 위에 겹칩니다. 닫힌 상태에서는 오른쪽 밖으로 나가고
+ * visibility 까지 꺼서 Tab 으로도 잡히지 않습니다. visibility 는 단계적으로
+ * 전환되므로 닫힐 때 슬라이드가 끝난 뒤에 사라집니다.
+ */
+.shell-drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  width: 320px;
+  max-width: 100%;
+  border-left: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: -10px 0 30px rgb(16 24 40 / 12%);
+  visibility: hidden;
+  transform: translateX(100%);
+  transition:
+    transform 0.22s cubic-bezier(0.32, 0.72, 0, 1),
+    visibility 0.22s;
+}
+
+.shell-drawer.is-open {
+  visibility: visible;
+  transform: translateX(0);
+}
+
+/* ── 모드 2: 모달 ───────────────────────────────────────────────────── */
+
+.shell-modal {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  visibility: hidden;
+  opacity: 0;
+  transition:
+    opacity 0.18s ease,
+    visibility 0.18s;
+}
+
+.shell-modal.is-open {
+  visibility: visible;
+  opacity: 1;
+}
+
+.shell-modal__scrim {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: rgb(16 24 40 / 42%);
+  cursor: default;
+  appearance: none;
+}
+
+.shell-modal__panel {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  width: min(460px, 88%);
+  max-height: 82%;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(10px) scale(0.98);
+  transition: transform 0.18s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.shell-modal.is-open .shell-modal__panel {
+  transform: none;
+}
+
+/* ── 모드 3: 고정 패널 ──────────────────────────────────────────────── */
+
+/* 유일하게 flex 흐름에 참여해서 캔버스 폭을 실제로 줄입니다. */
+.shell-docked {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  width: 300px;
+  border-left: 1px solid var(--border);
+  background: var(--surface);
+}
+
+/* ── 모드 4: 팝오버 ─────────────────────────────────────────────────── */
+
+/*
+ * 캔버스 안에 있지만 변환 래퍼 밖이라 zoom 을 따라 커지지 않습니다.
+ * 위치는 컴포넌트가 노드 좌표 × 뷰포트 변환으로 계산해 style 로 넣습니다.
+ */
+.shell-popover {
+  position: absolute;
+  z-index: 25;
+  display: flex;
+  flex-direction: column;
+  width: 300px;
+
+  /* max-height 는 컴포넌트가 남은 공간에 맞춰 인라인으로 넣습니다. */
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease,
+    visibility 0.15s;
+  cursor: default;
+  user-select: text;
+}
+
+.shell-popover.is-open {
+  visibility: visible;
+  opacity: 1;
+  transform: none;
+}
+
+/* 좌우로 밀려도 꼬리는 --arrow-x 를 따라 노드를 계속 가리킵니다. */
+.shell-popover::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: var(--arrow-x, 50%);
+  width: 11px;
+  height: 11px;
+  border-top: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+  background: var(--surface);
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.shell-popover.is-flipped::before {
+  top: auto;
+  bottom: -6px;
+  border-top: none;
+  border-left: none;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell-drawer,
+  .shell-modal,
+  .shell-modal__panel,
+  .shell-popover {
+    transition: none;
+  }
+}
+
+.form {
+  display: grid;
+  gap: 12px;
+}
+
+.form__row {
+  display: grid;
+  gap: 5px;
+}
+
+.form__label {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.form__control {
+  width: 100%;
+  padding: 7px 9px;
+  border: 1px solid var(--border-strong);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  resize: vertical;
+}
+
+.form__control:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 14%);
+}
+
+.form__help {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+/* ── 연결 목록 ──────────────────────────────────────────────────────── */
+
+.links {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.links__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 7px;
+  background: #f7f8fa;
+  font-size: 12px;
+}
+
+.links__port {
+  flex-shrink: 0;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.links__target {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.links__target--empty {
+  color: var(--muted);
+}
+
+.links__cut {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 5px;
+  background: none;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.links__cut:hover {
+  background: #fef2f2;
+  color: var(--danger);
+}
+
+/* ── JSON 모달 ──────────────────────────────────────────────────────── */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgb(16 24 40 / 45%);
+}
+
+.modal__backdrop {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: none;
+  cursor: default;
+  appearance: none;
+}
+
+.modal__box {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  width: min(620px, 100%);
+  max-height: 80vh;
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+}
+
+.modal__head {
+  padding: 18px 20px 12px;
+}
+
+.modal__head h2 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.modal__head p {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.modal__code {
+  flex: 1;
+  overflow: auto;
+  margin: 0 20px;
+  padding: 14px;
+  border-radius: 9px;
+  background: #f7f8fa;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.modal__foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 14px 20px 18px;
+}
+
+/* ── 홈: 기능 카드 런처 ─────────────────────────────────────────────── */
+
+/* body 가 overflow:hidden 이라 스크롤은 여기서 담당합니다. */
+.home {
+  height: 100vh;
+  overflow-y: auto;
+  background: var(--bg);
+}
+
+.home__inner {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 72px 24px 64px;
+}
+
+.home__head {
+  margin-bottom: 32px;
+}
+
+.home__logo {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 18px;
+  border-radius: 12px;
+  background: var(--text);
+  color: #fff;
+  font-size: 20px;
+}
+
+.home__title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 680;
+  letter-spacing: -0.01em;
+}
+
+.home__subtitle {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.cards {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cards__item {
+  display: flex;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color 0.14s,
+    box-shadow 0.14s,
+    transform 0.14s;
+}
+
+.card:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.card--planned {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.card--planned:hover {
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm);
+  transform: none;
+}
+
+.card__icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  margin-bottom: 14px;
+  border-radius: 10px;
+  background: var(--tint);
+  color: var(--accent);
+  font-size: 17px;
+}
+
+.card__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.card__desc {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.card__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card__chips li {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--tint);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* 카드 높이가 달라도 CTA 는 바닥에 정렬됩니다. */
+.card__cta {
+  margin-top: auto;
+  padding-top: 16px;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.card__cta--muted {
+  color: var(--muted);
+}
+
+/* 플로우 빌더에서 워크스페이스로 돌아가는 링크 */
+.builder__home {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 15px;
+  text-decoration: none;
+}
+
+.builder__home:hover {
+  background: #f3f4f6;
+  color: var(--text);
+}
