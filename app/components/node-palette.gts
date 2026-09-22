@@ -3,7 +3,22 @@ import { service } from '@ember/service';
 import { on } from '@ember/modifier';
 import { fn } from '@ember/helper';
 import { htmlSafe } from '@ember/template';
-import { DND_TYPE, NODE_TYPE_LIST } from 'emberjs/utils/node-types';
+import type { SafeString } from '@ember/template';
+import type FlowService from 'emberjs/services/flow';
+import type { Issue } from 'emberjs/services/flow';
+import {
+  DND_TYPE,
+  NODE_TYPE_LIST,
+  type NodeType,
+} from 'emberjs/utils/node-types';
+
+interface PaletteItem {
+  id: NodeType;
+  label: string;
+  hint: string;
+  icon: string;
+  style: SafeString;
+}
 
 /**
  * 왼쪽 사이드바: 추가할 수 있는 노드 목록 + 플로우 검증 결과.
@@ -11,9 +26,9 @@ import { DND_TYPE, NODE_TYPE_LIST } from 'emberjs/utils/node-types';
  * 캔버스로 끌어다 놓거나(HTML5 드래그앤드롭), 그냥 클릭하면 화면 중앙에 추가됩니다.
  */
 export default class NodePalette extends Component {
-  @service flow;
+  @service declare flow: FlowService;
 
-  types = NODE_TYPE_LIST.map((def) => ({
+  types: PaletteItem[] = NODE_TYPE_LIST.map((def) => ({
     id: def.id,
     label: def.label,
     hint: def.hint,
@@ -21,14 +36,16 @@ export default class NodePalette extends Component {
     style: htmlSafe(`--accent: ${def.accent}; --tint: ${def.tint};`),
   }));
 
-  onDragStart = (type, event) => {
-    event.dataTransfer.setData(DND_TYPE, type);
-    event.dataTransfer.effectAllowed = 'copy';
+  onDragStart = (type: NodeType, event: DragEvent): void => {
+    event.dataTransfer?.setData(DND_TYPE, type);
+    if (event.dataTransfer) event.dataTransfer.effectAllowed = 'copy';
   };
 
-  add = (type) => this.flow.addNodeAtCenter(type);
+  add = (type: NodeType): void => {
+    this.flow.addNodeAtCenter(type);
+  };
 
-  focusIssue = (issue) => {
+  focusIssue = (issue: Issue): void => {
     if (issue.nodeId) this.flow.focusNode(issue.nodeId);
   };
 

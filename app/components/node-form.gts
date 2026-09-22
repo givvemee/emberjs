@@ -1,40 +1,95 @@
 import Component from '@glimmer/component';
 import { service } from '@ember/service';
 import { on } from '@ember/modifier';
-import { eq, fn } from '@ember/helper';
+import { fn } from '@ember/helper';
+import type FlowService from 'emberjs/services/flow';
+import type { FlowEdge, FlowNode } from 'emberjs/utils/flow-graph';
+import type { SelectOption } from 'emberjs/utils/node-types';
+
+export interface NodeFormSignature {
+  Args: {
+    /** 편집할 노드 */
+    node: FlowNode;
+    /** 좁은 공간(인라인)에서 연결 목록을 생략 */
+    compact?: boolean;
+  };
+}
+
+/**
+ * 폼에 그릴 때 쓰는 형태.
+ *
+ * FieldDef 는 판별 유니온이지만 여기서는 납작하게 폅니다. 템플릿의 {{#if}} 는
+ * 타입을 좁혀주지 못해서, 유니온 그대로 두면 어느 분기에서도 placeholder/min 에
+ * 접근할 수 없습니다. 정의 시점의 안전성(예: options 는 select 에만)은
+ * node-types.ts 에서 이미 확보했고, 여기는 뷰 모델입니다.
+ *
+ * 분기도 헬퍼 대신 불리언 플래그로 넘깁니다 — Ember 7 의 내장 {{eq}} 는
+ * Glint 1.5 가 아직 호출 가능한 것으로 인식하지 못합니다.
+ */
+interface ResolvedField {
+  key: string;
+  label: string;
+  value: string | number;
+  help?: string;
+  placeholder?: string;
+  min?: number;
+  options?: Array<SelectOption & { selected: boolean }>;
+  isTextarea: boolean;
+  isSelect: boolean;
+  isNumber: boolean;
+}
+
+interface Connection {
+  key: string;
+  label: string;
+  edge: FlowEdge | undefined;
+  target: FlowNode | null;
+}
 
 /**
  * 노드 설정 폼. 드로어 · 팝오버 · 모달 · 고정 패널 · 인라인 다섯 모드가
  * 전부 이 컴포넌트를 씁니다. 모드는 "어디에 어떻게 띄우는지"만 다릅니다.
  *
  * 필드는 하드코딩되어 있지 않고 노드 타입의 `fields` 정의를 그대로 그립니다.
- *
- *   @node     편집할 노드
- *   @compact  좁은 공간(인라인)에서 연결 목록을 생략
  */
-export default class NodeForm extends Component {
-  @service flow;
+export default class NodeForm extends Component<NodeFormSignature> {
+  @service declare flow: FlowService;
 
   /** 필드 정의 + 현재 값을 미리 합쳐 두면 템플릿이 단순해집니다. */
-  get fields() {
+  get fields(): ResolvedField[] {
     const node = this.args.node;
     if (!node) return [];
 
-    return node.def.fields.map((field) => {
-      const value = node.data[field.key] ?? '';
+    const data = node.data as Record<string, string | number | undefined>;
+
+    return node.def.fields.map((field): ResolvedField => {
+      const value = data[field.key] ?? '';
       return {
-        ...field,
+        key: field.key,
+        label: field.label,
         value,
-        options: field.options?.map((option) => ({
-          ...option,
-          selected: option.value === value,
-        })),
+        help: field.help,
+        placeholder:
+          field.type === 'text' || field.type === 'textarea'
+            ? field.placeholder
+            : undefined,
+        min: field.type === 'number' ? field.min : undefined,
+        options:
+          field.type === 'select'
+            ? field.options.map((option) => ({
+                ...option,
+                selected: option.value === value,
+              }))
+            : undefined,
+        isTextarea: field.type === 'textarea',
+        isSelect: field.type === 'select',
+        isNumber: field.type === 'number',
       };
     });
   }
 
   /** 출력 포트별 연결 상태 */
-  get connections() {
+  get connections(): Connection[] {
     const node = this.args.node;
     if (!node) return [];
 
@@ -52,14 +107,17 @@ export default class NodeForm extends Component {
     });
   }
 
-  update = (key, event) => {
-    const target = event.target;
+  update = (key: string, event: Event): void => {
+    const target = event.target as HTMLInputElement;
     const value =
       target.type === 'number' ? Number(target.value) : target.value;
     this.flow.updateNodeData(this.args.node, key, value);
   };
 
-  disconnect = (edgeId) => this.flow.removeEdge(edgeId);
+  /** 템플릿이 link.edge 의 undefined 여부를 좁혀주지 못하므로 여기서 막습니다. */
+  disconnect = (edgeId: string | undefined): void => {
+    if (edgeId) this.flow.removeEdge(edgeId);
+  };
 
   <template>
     <div class="form">
@@ -67,7 +125,7 @@ export default class NodeForm extends Component {
         <label class="form__row">
           <span class="form__label">{{field.label}}</span>
 
-          {{#if (eq field.type "textarea")}}
+          {{#if field.isTextarea}}
             <textarea
               class="form__control"
               rows={{if @compact "3" "4"}}
@@ -75,7 +133,7 @@ export default class NodeForm extends Component {
               value={{field.value}}
               {{on "input" (fn this.update field.key)}}
             ></textarea>
-          {{else if (eq field.type "select")}}
+          {{else if field.isSelect}}
             <select
               class="form__control"
               {{on "change" (fn this.update field.key)}}
@@ -87,7 +145,7 @@ export default class NodeForm extends Component {
                 </option>
               {{/each}}
             </select>
-          {{else if (eq field.type "number")}}
+          {{else if field.isNumber}}
             <input
               class="form__control"
               type="number"

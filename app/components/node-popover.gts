@@ -2,9 +2,13 @@ import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
 import { service } from '@ember/service';
 import { htmlSafe } from '@ember/template';
+import type { SafeString } from '@ember/template';
 import NodePanel from 'emberjs/components/node-panel';
 import measure from 'emberjs/modifiers/measure';
+import type FlowService from 'emberjs/services/flow';
+import type { Selection } from 'emberjs/services/flow';
 import { clamp } from 'emberjs/utils/flow-geometry';
+import type { FlowNode } from 'emberjs/utils/flow-graph';
 
 const GAP = 14;
 const EDGE_PAD = 8;
@@ -17,6 +21,11 @@ const EDGE_PAD = 8;
 const PREFERRED_HEIGHT = 260;
 const MIN_HEIGHT = 180;
 
+interface Placement {
+  flip: boolean;
+  style: SafeString;
+}
+
 /**
  * 선택한 노드에 붙어 다니는 팝오버.
  *
@@ -28,26 +37,26 @@ const MIN_HEIGHT = 180;
  * 캔버스를 이동/확대하면 팝오버가 알아서 따라옵니다.
  */
 export default class NodePopover extends Component {
-  @service flow;
+  @service declare flow: FlowService;
 
   /** 가로 클램프에 실제 폭이 필요해서 측정합니다. */
   @tracked width = 300;
 
-  get isOpen() {
+  get isOpen(): boolean {
     return this.flow.selection?.kind === 'node';
   }
 
   /** 닫히는 동안 내용이 먼저 비지 않도록 직전 선택을 남겨 둡니다. */
-  get shown() {
+  get shown(): Selection | null {
     const selection = this.flow.selection ?? this.flow.lastSelection;
     return selection?.kind === 'node' ? selection : null;
   }
 
-  get node() {
+  get node(): FlowNode | null {
     return this.shown ? this.flow.nodeById(this.shown.id) : null;
   }
 
-  get placement() {
+  get placement(): Placement | null {
     const node = this.node;
     const viewport = this.flow.viewport;
     if (!node || !viewport.width) return null;
@@ -87,11 +96,11 @@ export default class NodePopover extends Component {
     };
   }
 
-  setSize = (height, width) => {
+  setSize = (_height: number, width: number): void => {
     if (Math.abs(this.width - width) > 0.5) this.width = width;
   };
 
-  close = () => this.flow.clearSelection();
+  close = (): void => this.flow.clearSelection();
 
   <template>
     {{#if this.placement}}

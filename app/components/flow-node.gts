@@ -1,10 +1,25 @@
 import Component from '@glimmer/component';
 import { service } from '@ember/service';
 import { on } from '@ember/modifier';
-import { not } from '@ember/helper';
 import { htmlSafe } from '@ember/template';
+import type { SafeString } from '@ember/template';
 import NodeForm from 'emberjs/components/node-form';
 import measure from 'emberjs/modifiers/measure';
+import type FlowService from 'emberjs/services/flow';
+import type { FlowNode, OutputPort } from 'emberjs/utils/flow-graph';
+
+export interface FlowNodeSignature {
+  Element: HTMLDivElement;
+  Args: {
+    node: FlowNode;
+    /** 현재 선택된 노드 id. 비교는 이 컴포넌트가 합니다. */
+    selectedId?: string | null;
+    /** 연결 드래그 중 유효한 도착지로 지목된 노드 id */
+    draftTargetId?: string | null;
+  };
+}
+
+type RenderedPort = OutputPort & { connected: boolean };
 
 /**
  * 캔버스 위의 노드 박스.
@@ -15,20 +30,24 @@ import measure from 'emberjs/modifiers/measure';
  *
  * 예외로 인라인 모드일 때는 노드 안에 설정 폼을 직접 펼칩니다.
  */
-export default class FlowNodeComponent extends Component {
-  @service flow;
+export default class FlowNodeComponent extends Component<FlowNodeSignature> {
+  @service declare flow: FlowService;
 
-  get style() {
+  get selected(): boolean {
+    return this.args.selectedId === this.args.node.id;
+  }
+
+  get style(): SafeString {
     const { x, y } = this.args.node;
     return htmlSafe(`transform: translate(${x}px, ${y}px);`);
   }
 
-  get themeStyle() {
+  get themeStyle(): SafeString {
     const { accent, tint } = this.args.node.def;
     return htmlSafe(`--accent: ${accent}; --tint: ${tint};`);
   }
 
-  get ports() {
+  get ports(): RenderedPort[] {
     const { id } = this.args.node;
     return this.args.node.outputPorts.map((port) => ({
       ...port,
@@ -37,30 +56,34 @@ export default class FlowNodeComponent extends Component {
   }
 
   /** 인라인 모드에서 이 노드가 선택되어 폼을 펼쳐야 하는지 */
-  get isExpanded() {
-    return this.flow.panelMode === 'inline' && this.args.selected;
+  get isExpanded(): boolean {
+    return this.flow.panelMode === 'inline' && this.selected;
   }
 
   /** 연결을 드래그해 오는 중이고, 이 노드가 유효한 도착지일 때 */
-  get isDropTarget() {
+  get isDropTarget(): boolean {
     return this.args.draftTargetId === this.args.node.id;
   }
 
-  setSize = (height, width) => {
+  get cannotRemove(): boolean {
+    return !this.args.node.def.removable;
+  }
+
+  setSize = (height: number, width: number): void => {
     // 실제 변화가 있을 때만 씁니다. 같은 값을 다시 쓰면 불필요한 리렌더가 생깁니다.
     const node = this.args.node;
     if (Math.abs(node.height - height) > 0.5) node.height = height;
     if (Math.abs(node.width - width) > 0.5) node.width = width;
   };
 
-  close = () => this.flow.clearSelection();
-  duplicate = () => this.flow.duplicateNode(this.args.node.id);
-  remove = () => this.flow.removeNode(this.args.node.id);
+  close = (): void => this.flow.clearSelection();
+  duplicate = (): void => this.flow.duplicateNode(this.args.node.id);
+  remove = (): void => this.flow.removeNode(this.args.node.id);
 
   <template>
     <div
       class="flow-node flow-node--{{@node.type}}
-        {{if @selected 'is-selected'}}
+        {{if this.selected 'is-selected'}}
         {{if this.isExpanded 'is-expanded'}}
         {{if this.isDropTarget 'is-drop-target'}}"
       data-node-id={{@node.id}}
@@ -104,7 +127,7 @@ export default class FlowNodeComponent extends Component {
               <button
                 type="button"
                 class="btn btn--grow btn--danger"
-                disabled={{not @node.def.removable}}
+                disabled={{this.cannotRemove}}
                 {{on "click" this.remove}}
               >삭제</button>
             </div>

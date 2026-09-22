@@ -6,48 +6,65 @@ import NodePalette from 'emberjs/components/node-palette';
 import FlowCanvas from 'emberjs/components/flow-canvas';
 import NodeInspector from 'emberjs/components/node-inspector';
 import windowKeydown from 'emberjs/modifiers/window-keydown';
-import { PANEL_MODES } from 'emberjs/utils/panel-modes';
+import type FlowService from 'emberjs/services/flow';
+import { PANEL_MODES, type PanelMode } from 'emberjs/utils/panel-modes';
 
 const EDITABLE = ['INPUT', 'TEXTAREA', 'SELECT'];
 
+interface PanelModeChoice {
+  value: PanelMode;
+  label: string;
+  hint: string;
+  selected: boolean;
+}
+
 /** 팔레트 · 캔버스 · 인스펙터를 묶는 껍데기. 상단 툴바와 단축키를 담당합니다. */
 export default class FlowBuilder extends Component {
-  @service flow;
+  @service declare flow: FlowService;
 
   @tracked copied = false;
 
-  get summary() {
+  get summary(): string {
     const nodes = this.flow.nodes.length;
     const edges = this.flow.edges.length;
     return `노드 ${nodes}개 · 연결 ${edges}개`;
   }
 
-  get panelModes() {
+  get panelModes(): PanelModeChoice[] {
     return PANEL_MODES.map((mode) => ({
-      ...mode,
+      value: mode.value,
+      label: mode.label,
+      hint: mode.hint,
       selected: mode.value === this.flow.panelMode,
     }));
   }
 
-  get panelModeHint() {
+  get panelModeHint(): string | undefined {
     return PANEL_MODES.find((mode) => mode.value === this.flow.panelMode)?.hint;
   }
 
-  onPanelModeChange = (event) => this.flow.setPanelMode(event.target.value);
+  onPanelModeChange = (event: Event): void => {
+    const select = event.target as HTMLSelectElement;
+    this.flow.setPanelMode(select.value);
+  };
 
-  get statusClass() {
+  get statusClass(): string {
     if (this.flow.errorCount > 0) return 'status status--error';
     if (this.flow.issues.length > 0) return 'status status--warn';
     return 'status status--ok';
   }
 
-  get statusLabel() {
+  get statusLabel(): string {
     if (this.flow.errorCount > 0) return `오류 ${this.flow.errorCount}개`;
     if (this.flow.issues.length > 0) return `경고 ${this.flow.issues.length}개`;
     return '이상 없음';
   }
 
-  onKeyDown = (event) => {
+  get copyLabel(): string {
+    return this.copied ? '복사됨' : '복사';
+  }
+
+  onKeyDown = (event: KeyboardEvent): void => {
     if (event.key === 'Escape') {
       if (this.flow.exported) this.flow.hideExport();
       else this.flow.clearSelection();
@@ -75,14 +92,15 @@ export default class FlowBuilder extends Component {
     }
   };
 
-  showExport = () => {
+  showExport = (): void => {
     this.copied = false;
     this.flow.showExport();
   };
 
-  hideExport = () => this.flow.hideExport();
+  hideExport = (): void => this.flow.hideExport();
 
-  copyExport = async () => {
+  copyExport = async (): Promise<void> => {
+    if (!this.flow.exported) return;
     try {
       await navigator.clipboard.writeText(this.flow.exported);
       this.copied = true;
@@ -91,13 +109,14 @@ export default class FlowBuilder extends Component {
     }
   };
 
-  clearAll = () => {
+  clearAll = (): void => {
     if (confirm('시작 노드만 남기고 모두 지울까요?')) this.flow.clear();
   };
 
-  restoreSample = () => {
-    if (confirm('현재 플로우를 버리고 예시 플로우로 되돌릴까요?'))
+  restoreSample = (): void => {
+    if (confirm('현재 플로우를 버리고 예시 플로우로 되돌릴까요?')) {
       this.flow.reset();
+    }
   };
 
   <template>
@@ -172,7 +191,7 @@ export default class FlowBuilder extends Component {
             <pre class="modal__code">{{this.flow.exported}}</pre>
             <footer class="modal__foot">
               <button type="button" class="btn" {{on "click" this.copyExport}}>
-                {{if this.copied "복사됨" "복사"}}
+                {{this.copyLabel}}
               </button>
               <button
                 type="button"

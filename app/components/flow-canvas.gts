@@ -2,16 +2,45 @@ import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
 import { service } from '@ember/service';
 import { on } from '@ember/modifier';
-import { eq } from '@ember/helper';
 import { htmlSafe } from '@ember/template';
-import FlowNode from 'emberjs/components/flow-node';
-import FlowEdge from 'emberjs/components/flow-edge';
+import type { SafeString } from '@ember/template';
+import FlowNodeComponent from 'emberjs/components/flow-node';
+import FlowEdgeComponent from 'emberjs/components/flow-edge';
 import NodePopover from 'emberjs/components/node-popover';
 import measure from 'emberjs/modifiers/measure';
-import { bezierPath, EDGE_PLANE } from 'emberjs/utils/flow-geometry';
+import type FlowService from 'emberjs/services/flow';
+import {
+  bezierPath,
+  EDGE_PLANE,
+  type Viewport,
+} from 'emberjs/utils/flow-geometry';
+import type { FlowEdge, FlowNode } from 'emberjs/utils/flow-graph';
 import { DND_TYPE, GRID, NODE_WIDTH } from 'emberjs/utils/node-types';
 
 const PLANE_HALF = EDGE_PLANE / 2;
+
+/** 연결선을 끌고 있는 중의 상태 */
+interface DraftConnection {
+  fromId: string;
+  port: string;
+  x: number;
+  y: number;
+  targetId: string | null;
+}
+
+/** 양쪽 노드를 미리 해석해 둔 엣지 */
+interface RenderableEdge {
+  edge: FlowEdge;
+  from: FlowNode;
+  to: FlowNode;
+}
+
+type CursorMode = 'pan' | 'node' | 'connect' | null;
+
+interface DragHandlers {
+  move: (event: PointerEvent) => void;
+  end?: (event: PointerEvent) => void;
+}
 
 /**
  * 캔버스. 모든 포인터 상호작용이 여기 한 곳에 모여 있습니다.
@@ -21,27 +50,26 @@ const PLANE_HALF = EDGE_PLANE / 2;
  * 노드가 100개여도 리스너는 여전히 하나입니다.
  */
 export default class FlowCanvas extends Component {
-  @service flow;
+  @service declare flow: FlowService;
 
-  /** 연결선을 끌고 있는 중의 상태: { fromId, port, x, y, targetId } */
-  @tracked draft = null;
+  @tracked draft: DraftConnection | null = null;
 
-  /** 'pan' | 'node' | 'connect' — 커서 모양에만 씁니다. */
-  @tracked cursorMode = null;
+  /** 커서 모양에만 씁니다. */
+  @tracked cursorMode: CursorMode = null;
 
-  get viewport() {
+  get viewport(): Viewport {
     return this.flow.viewport;
   }
 
   // ── 렌더링용 파생 상태 ──────────────────────────────────────────────
 
-  get contentStyle() {
+  get contentStyle(): SafeString {
     const { x, y, zoom } = this.viewport;
     return htmlSafe(`transform: translate(${x}px, ${y}px) scale(${zoom});`);
   }
 
   /** 배경 격자도 뷰포트를 따라 움직여야 실제로 움직인다는 느낌이 납니다. */
-  get gridStyle() {
+  get gridStyle(): SafeString {
     const { x, y, zoom } = this.viewport;
     const size = 20 * zoom;
     return htmlSafe(
@@ -53,26 +81,26 @@ export default class FlowCanvas extends Component {
   planeViewBox = `${-PLANE_HALF} ${-PLANE_HALF} ${EDGE_PLANE} ${EDGE_PLANE}`;
   planeStyle = htmlSafe(`left: ${-PLANE_HALF}px; top: ${-PLANE_HALF}px;`);
 
-  get selectedNodeId() {
+  get selectedNodeId(): string | null {
     return this.flow.selection?.kind === 'node' ? this.flow.selection.id : null;
   }
 
-  get selectedEdgeId() {
+  get selectedEdgeId(): string | null {
     return this.flow.selection?.kind === 'edge' ? this.flow.selection.id : null;
   }
 
-  /** 양쪽 노드를 미리 해석해 둡니다 — 한쪽이 사라진 엣지는 그리지 않습니다. */
-  get renderableEdges() {
-    return this.flow.edges
-      .map((edge) => ({
-        edge,
-        from: this.flow.nodeById(edge.from),
-        to: this.flow.nodeById(edge.to),
-      }))
-      .filter((item) => item.from && item.to);
+  /** 한쪽 노드가 사라진 엣지는 그리지 않습니다. */
+  get renderableEdges(): RenderableEdge[] {
+    const items: RenderableEdge[] = [];
+    for (const edge of this.flow.edges) {
+      const from = this.flow.nodeById(edge.from);
+      const to = this.flow.nodeById(edge.to);
+      if (from && to) items.push({ edge, from, to });
+    }
+    return items;
   }
 
-  get draftPath() {
+  get draftPath(): string | null {
     if (!this.draft) return null;
     const from = this.flow.nodeById(this.draft.fromId);
     if (!from) return null;
@@ -82,24 +110,25 @@ export default class FlowCanvas extends Component {
     });
   }
 
-  get zoomLabel() {
+  get zoomLabel(): string {
     return `${Math.round(this.viewport.zoom * 100)}%`;
   }
 
   /** 팝오버는 캔버스 좌표가 필요해서 다른 모드와 달리 여기서 그립니다. */
-  get isPopoverMode() {
+  get isPopoverMode(): boolean {
     return this.flow.panelMode === 'popover';
   }
 
-  get cursorClass() {
-    return { pan: 'is-panning', node: 'is-moving', connect: 'is-connecting' }[
-      this.cursorMode
-    ];
+  get cursorClass(): string {
+    if (this.cursorMode === 'pan') return 'is-panning';
+    if (this.cursorMode === 'node') return 'is-moving';
+    if (this.cursorMode === 'connect') return 'is-connecting';
+    return '';
   }
 
   #fitted = false;
 
-  setViewportSize = (height, width) => {
+  setViewportSize = (height: number, width: number): void => {
     this.viewport.height = height;
     this.viewport.width = width;
 
@@ -113,35 +142,34 @@ export default class FlowCanvas extends Component {
 
   // ── 포인터 ──────────────────────────────────────────────────────────
 
-  onPointerDown = (event) => {
+  onPointerDown = (event: PointerEvent): void => {
     if (event.button !== 0) return;
-    const canvas = event.currentTarget;
+    const canvas = event.currentTarget as HTMLElement;
+    const target = event.target as Element | null;
 
-    // 캔버스 위에 떠 있는 UI(줌 툴바 등)는 드래그 대상이 아닙니다.
+    // 캔버스 위에 떠 있는 UI(줌 툴바, 팝오버, 인라인 폼)는 드래그 대상이 아닙니다.
     // 여기서 걸러내지 않으면 아래의 preventDefault 가 click 이벤트까지 막아버립니다.
-    if (event.target.closest?.('[data-canvas-ui]')) return;
+    if (target?.closest('[data-canvas-ui]')) return;
 
-    const portEl = event.target.closest?.('[data-port]');
+    const portEl = target?.closest<HTMLElement>('[data-port]');
     if (portEl) {
-      const nodeEl = portEl.closest('[data-node-id]');
-      this.#beginConnect(
-        event,
-        canvas,
-        nodeEl.dataset.nodeId,
-        portEl.dataset.port,
-      );
+      const nodeEl = portEl.closest<HTMLElement>('[data-node-id]');
+      const nodeId = nodeEl?.dataset['nodeId'];
+      const port = portEl.dataset['port'];
+      if (nodeId && port) this.#beginConnect(event, canvas, nodeId, port);
       return;
     }
 
-    const nodeEl = event.target.closest?.('[data-node-id]');
-    if (nodeEl) {
-      this.#beginNodeDrag(event, canvas, nodeEl.dataset.nodeId);
+    const nodeEl = target?.closest<HTMLElement>('[data-node-id]');
+    if (nodeEl?.dataset['nodeId']) {
+      this.#beginNodeDrag(event, canvas, nodeEl.dataset['nodeId']);
       return;
     }
 
-    const edgeEl = event.target.closest?.('[data-edge-id]');
-    if (edgeEl) {
-      this.flow.select('edge', edgeEl.dataset.edgeId);
+    const edgeEl = target?.closest<SVGElement>('[data-edge-id]');
+    const edgeId = edgeEl?.dataset['edgeId'];
+    if (edgeId) {
+      this.flow.select('edge', edgeId);
       return;
     }
 
@@ -153,16 +181,20 @@ export default class FlowCanvas extends Component {
    * 드래그 공통 루프. 포인터를 캔버스에 캡처해 두면 커서가 캔버스 밖으로 나가도
    * pointermove 가 계속 들어옵니다 (창 밖으로 나가도 드래그가 끊기지 않음).
    */
-  #beginDrag(event, canvas, handlers) {
+  #beginDrag(
+    event: PointerEvent,
+    canvas: HTMLElement,
+    handlers: DragHandlers,
+  ): void {
     event.preventDefault();
     canvas.setPointerCapture(event.pointerId);
 
-    const onMove = (moveEvent) => {
+    const onMove = (moveEvent: PointerEvent) => {
       if (moveEvent.pointerId !== event.pointerId) return;
       handlers.move(moveEvent);
     };
 
-    const onFinish = (endEvent) => {
+    const onFinish = (endEvent: PointerEvent) => {
       if (endEvent.pointerId !== event.pointerId) return;
       canvas.removeEventListener('pointermove', onMove);
       canvas.removeEventListener('pointerup', onFinish);
@@ -178,7 +210,11 @@ export default class FlowCanvas extends Component {
     canvas.addEventListener('pointercancel', onFinish);
   }
 
-  #beginNodeDrag(event, canvas, nodeId) {
+  #beginNodeDrag(
+    event: PointerEvent,
+    canvas: HTMLElement,
+    nodeId: string,
+  ): void {
     const node = this.flow.nodeById(nodeId);
     if (!node) return;
 
@@ -211,7 +247,7 @@ export default class FlowCanvas extends Component {
     });
   }
 
-  #beginPan(event, canvas) {
+  #beginPan(event: PointerEvent, canvas: HTMLElement): void {
     this.cursorMode = 'pan';
 
     const startX = event.clientX;
@@ -230,7 +266,12 @@ export default class FlowCanvas extends Component {
     });
   }
 
-  #beginConnect(event, canvas, fromId, port) {
+  #beginConnect(
+    event: PointerEvent,
+    canvas: HTMLElement,
+    fromId: string,
+    port: string,
+  ): void {
     this.cursorMode = 'connect';
     const rect = canvas.getBoundingClientRect();
     const start = this.viewport.toFlow(
@@ -248,11 +289,12 @@ export default class FlowCanvas extends Component {
         // 포트라는 작은 과녁 대신 노드 전체를 드롭 영역으로 씁니다.
         const hovered = document
           .elementFromPoint(moveEvent.clientX, moveEvent.clientY)
-          ?.closest('[data-node-id]');
-        const candidate = hovered?.dataset.nodeId ?? null;
+          ?.closest<HTMLElement>('[data-node-id]');
+        const candidate = hovered?.dataset['nodeId'] ?? null;
 
         this.draft = {
-          ...this.draft,
+          fromId,
+          port,
           x: point.x,
           y: point.y,
           targetId: this.flow.canConnectTo(fromId, candidate)
@@ -261,21 +303,21 @@ export default class FlowCanvas extends Component {
         };
       },
       end: () => {
-        if (this.draft?.targetId) {
-          this.flow.connect(fromId, port, this.draft.targetId);
-        }
+        const targetId = this.draft?.targetId;
+        if (targetId) this.flow.connect(fromId, port, targetId);
         this.draft = null;
         this.cursorMode = null;
       },
     });
   }
 
-  onWheel = (event) => {
+  onWheel = (event: WheelEvent): void => {
+    const target = event.target as Element | null;
     // 팝오버·인라인 폼 위에서는 캔버스가 휠을 가로채지 않고 그대로 스크롤되게 둡니다.
-    if (event.target.closest?.('[data-canvas-ui]')) return;
+    if (target?.closest('[data-canvas-ui]')) return;
 
     event.preventDefault();
-    const rect = event.currentTarget.getBoundingClientRect();
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
     const pointerX = event.clientX - rect.left;
     const pointerY = event.clientY - rect.top;
 
@@ -294,18 +336,19 @@ export default class FlowCanvas extends Component {
 
   // ── 팔레트에서 끌어다 놓기 ──────────────────────────────────────────
 
-  onDragOver = (event) => {
-    if (!Array.from(event.dataTransfer.types).includes(DND_TYPE)) return;
+  onDragOver = (event: DragEvent): void => {
+    const transfer = event.dataTransfer;
+    if (!transfer || !Array.from(transfer.types).includes(DND_TYPE)) return;
     event.preventDefault();
-    event.dataTransfer.dropEffect = 'copy';
+    transfer.dropEffect = 'copy';
   };
 
-  onDrop = (event) => {
-    const type = event.dataTransfer.getData(DND_TYPE);
+  onDrop = (event: DragEvent): void => {
+    const type = event.dataTransfer?.getData(DND_TYPE);
     if (!type) return;
     event.preventDefault();
 
-    const rect = event.currentTarget.getBoundingClientRect();
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
     const point = this.viewport.toFlow(
       event.clientX - rect.left,
       event.clientY - rect.top,
@@ -316,10 +359,10 @@ export default class FlowCanvas extends Component {
 
   // ── 줌 컨트롤 ───────────────────────────────────────────────────────
 
-  zoomIn = () => this.viewport.zoomBy(1.2);
-  zoomOut = () => this.viewport.zoomBy(1 / 1.2);
-  fitView = () => this.viewport.fit(this.flow.nodes);
-  resetZoom = () => this.viewport.zoomTo(1);
+  zoomIn = (): void => this.viewport.zoomBy(1.2);
+  zoomOut = (): void => this.viewport.zoomBy(1 / 1.2);
+  fitView = (): void => this.viewport.fit(this.flow.nodes);
+  resetZoom = (): void => this.viewport.zoomTo(1);
 
   <template>
     {{! 드래그의 시작점을 잡아야 하므로 pointerdown 이 필수입니다.
@@ -357,11 +400,11 @@ export default class FlowCanvas extends Component {
           </defs>
 
           {{#each this.renderableEdges key="edge.id" as |item|}}
-            <FlowEdge
+            <FlowEdgeComponent
               @edge={{item.edge}}
               @from={{item.from}}
               @to={{item.to}}
-              @selected={{eq this.selectedEdgeId item.edge.id}}
+              @selectedId={{this.selectedEdgeId}}
             />
           {{/each}}
 
@@ -371,9 +414,9 @@ export default class FlowCanvas extends Component {
         </svg>
 
         {{#each this.flow.nodes key="id" as |node|}}
-          <FlowNode
+          <FlowNodeComponent
             @node={{node}}
-            @selected={{eq this.selectedNodeId node.id}}
+            @selectedId={{this.selectedNodeId}}
             @draftTargetId={{this.draft.targetId}}
           />
         {{/each}}
@@ -413,6 +456,6 @@ export default class FlowCanvas extends Component {
   </template>
 }
 
-function snap(value) {
+function snap(value: number): number {
   return Math.round(value / GRID) * GRID;
 }

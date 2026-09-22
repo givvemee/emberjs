@@ -2,6 +2,9 @@ import Component from '@glimmer/component';
 import { service } from '@ember/service';
 import { on } from '@ember/modifier';
 import NodePanel from 'emberjs/components/node-panel';
+import type FlowService from 'emberjs/services/flow';
+import type { Selection } from 'emberjs/services/flow';
+import type { FlowEdge, FlowNode } from 'emberjs/utils/flow-graph';
 
 /**
  * 캔버스 바깥에 뜨는 세 가지 모드를 담당합니다: 드로어 · 모달 · 고정 패널.
@@ -10,25 +13,21 @@ import NodePanel from 'emberjs/components/node-panel';
  * FlowNode 가 각각 그립니다. 좌표계를 가진 쪽이 그리는 원칙입니다.
  */
 export default class NodeInspector extends Component {
-  @service flow;
+  @service declare flow: FlowService;
 
-  get mode() {
-    return this.flow.panelMode;
+  get isDrawer(): boolean {
+    return this.flow.panelMode === 'drawer';
   }
 
-  get isDrawer() {
-    return this.mode === 'drawer';
+  get isModal(): boolean {
+    return this.flow.panelMode === 'modal';
   }
 
-  get isModal() {
-    return this.mode === 'modal';
+  get isDocked(): boolean {
+    return this.flow.panelMode === 'docked';
   }
 
-  get isDocked() {
-    return this.mode === 'docked';
-  }
-
-  get isOpen() {
+  get isOpen(): boolean {
     return Boolean(this.flow.selection);
   }
 
@@ -37,22 +36,22 @@ export default class NodeInspector extends Component {
    * 슬라이드가 끝나기 전에 내용이 먼저 비어서 깜빡입니다.
    * 고정 패널은 애니메이션이 없으므로 현재 선택만 봅니다(없으면 빈 상태).
    */
-  get shown() {
+  get shown(): Selection | null {
     if (this.isDocked) return this.flow.selection;
     return this.flow.selection ?? this.flow.lastSelection;
   }
 
-  get node() {
+  get node(): FlowNode | null {
     if (this.shown?.kind !== 'node') return null;
     return this.flow.nodeById(this.shown.id);
   }
 
-  get edge() {
+  get edge(): FlowEdge | null {
     if (this.shown?.kind !== 'edge') return null;
-    return this.flow.edges.find((candidate) => candidate.id === this.shown.id);
+    return this.flow.edgeById(this.shown.id);
   }
 
-  close = () => this.flow.clearSelection();
+  close = (): void => this.flow.clearSelection();
 
   <template>
     {{#if this.isDrawer}}

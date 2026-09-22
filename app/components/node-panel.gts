@@ -1,30 +1,44 @@
 import Component from '@glimmer/component';
 import { service } from '@ember/service';
 import { on } from '@ember/modifier';
-import { not } from '@ember/helper';
 import { htmlSafe } from '@ember/template';
+import type { SafeString } from '@ember/template';
 import NodeForm from 'emberjs/components/node-form';
+import type FlowService from 'emberjs/services/flow';
+import type { FlowEdge, FlowNode } from 'emberjs/utils/flow-graph';
+
+export interface NodePanelSignature {
+  Args: {
+    /** 둘 중 하나만 채워집니다. 둘 다 없으면 빈 상태. */
+    node?: FlowNode | null;
+    edge?: FlowEdge | null;
+    /** 없으면 닫기 버튼을 그리지 않습니다(고정 패널). */
+    onClose?: () => void;
+  };
+}
+
+interface EdgeEnds {
+  from: FlowNode | null;
+  to: FlowNode | null;
+}
 
 /**
  * 패널 내용물: 머리말 + 폼 + 액션.
  *
  * 드로어 · 모달 · 고정 패널 · 팝오버가 이 컴포넌트를 그대로 씁니다.
  * 껍데기(위치·애니메이션)는 CSS 가, 내용은 여기가 책임집니다.
- *
- *   @node / @edge  둘 중 하나만 채워집니다. 둘 다 없으면 빈 상태.
- *   @onClose       닫기 버튼 동작. 없으면 닫기 버튼을 그리지 않습니다(고정 패널).
  */
-export default class NodePanel extends Component {
-  @service flow;
+export default class NodePanel extends Component<NodePanelSignature> {
+  @service declare flow: FlowService;
 
-  get themeStyle() {
+  get themeStyle(): SafeString | null {
     const def = this.args.node?.def;
     return def
       ? htmlSafe(`--accent: ${def.accent}; --tint: ${def.tint};`)
       : null;
   }
 
-  get edgeEnds() {
+  get edgeEnds(): EdgeEnds | null {
     const edge = this.args.edge;
     if (!edge) return null;
     return {
@@ -33,9 +47,22 @@ export default class NodePanel extends Component {
     };
   }
 
-  remove = () => this.flow.removeNode(this.args.node.id);
-  duplicate = () => this.flow.duplicateNode(this.args.node.id);
-  removeEdge = () => this.flow.removeEdge(this.args.edge.id);
+  /** 시작 노드는 지울 수 없습니다. 템플릿이 {{not}} 을 못 쓰므로 여기서 계산합니다. */
+  get cannotRemove(): boolean {
+    return !this.args.node?.def.removable;
+  }
+
+  remove = (): void => {
+    if (this.args.node) this.flow.removeNode(this.args.node.id);
+  };
+
+  duplicate = (): void => {
+    if (this.args.node) this.flow.duplicateNode(this.args.node.id);
+  };
+
+  removeEdge = (): void => {
+    if (this.args.edge) this.flow.removeEdge(this.args.edge.id);
+  };
 
   <template>
     {{#if @node}}
@@ -68,7 +95,7 @@ export default class NodePanel extends Component {
         <button
           type="button"
           class="btn btn--grow btn--danger"
-          disabled={{not @node.def.removable}}
+          disabled={{this.cannotRemove}}
           {{on "click" this.remove}}
         >삭제</button>
       </footer>
