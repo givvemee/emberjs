@@ -2,6 +2,7 @@ import Component from '@glimmer/component';
 import { tracked } from '@glimmer/tracking';
 import { service } from '@ember/service';
 import { on } from '@ember/modifier';
+import { LinkTo } from '@ember/routing';
 import NodePalette from 'emberjs/components/node-palette';
 import FlowCanvas from 'emberjs/components/flow-canvas';
 import NodeInspector from 'emberjs/components/node-inspector';
@@ -123,6 +124,9 @@ export default class FlowBuilder extends Component {
     <div class="builder" {{windowKeydown this.onKeyDown}}>
       <header class="builder__bar">
         <div class="builder__brand">
+          <LinkTo @route="index" class="builder__home" title="워크스페이스로">
+            ←
+          </LinkTo>
           <span class="builder__logo">⇅</span>
           <div>
             <h1>플로우 빌더</h1>

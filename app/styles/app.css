@@ -1108,3 +1108,172 @@ body {
   gap: 8px;
   padding: 14px 20px 18px;
 }
+
+/* ── 홈: 기능 카드 런처 ─────────────────────────────────────────────── */
+
+/* body 가 overflow:hidden 이라 스크롤은 여기서 담당합니다. */
+.home {
+  height: 100vh;
+  overflow-y: auto;
+  background: var(--bg);
+}
+
+.home__inner {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 72px 24px 64px;
+}
+
+.home__head {
+  margin-bottom: 32px;
+}
+
+.home__logo {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 18px;
+  border-radius: 12px;
+  background: var(--text);
+  color: #fff;
+  font-size: 20px;
+}
+
+.home__title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 680;
+  letter-spacing: -0.01em;
+}
+
+.home__subtitle {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.cards {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cards__item {
+  display: flex;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color 0.14s,
+    box-shadow 0.14s,
+    transform 0.14s;
+}
+
+.card:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.card--planned {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.card--planned:hover {
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm);
+  transform: none;
+}
+
+.card__icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  margin-bottom: 14px;
+  border-radius: 10px;
+  background: var(--tint);
+  color: var(--accent);
+  font-size: 17px;
+}
+
+.card__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.card__desc {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.card__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card__chips li {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--tint);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* 카드 높이가 달라도 CTA 는 바닥에 정렬됩니다. */
+.card__cta {
+  margin-top: auto;
+  padding-top: 16px;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.card__cta--muted {
+  color: var(--muted);
+}
+
+/* 플로우 빌더에서 워크스페이스로 돌아가는 링크 */
+.builder__home {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 15px;
+  text-decoration: none;
+}
+
+.builder__home:hover {
+  background: #f3f4f6;
+  color: var(--text);
+}
