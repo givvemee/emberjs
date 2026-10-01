@@ -24,6 +24,7 @@ import n from 'eslint-plugin-n';
 
 import babelParser from '@babel/eslint-parser/experimental-worker';
 import tseslint from 'typescript-eslint';
+import reactHooks from 'eslint-plugin-react-hooks';
 
 const esmParserOptions = {
   ecmaFeatures: { modules: true },
@@ -66,10 +67,10 @@ export default defineConfig([
    */
   ...tseslint.configs.recommended.map((config) => ({
     ...config,
-    files: ['**/*.{ts,gts}'],
+    files: ['**/*.{ts,gts,tsx}'],
   })),
   {
-    files: ['**/*.{ts,gts}'],
+    files: ['**/*.{ts,gts,tsx}'],
     languageOptions: {
       globals: {
         ...globals.browser,
@@ -89,6 +90,13 @@ export default defineConfig([
    * flat config 는 나중에 오는 쪽이 이기므로 순서가 중요합니다.
    */
   ember.configs.gts,
+  /**
+   * React 아일랜드 (app/react/). 훅 규칙만 켭니다.
+   */
+  {
+    ...reactHooks.configs.flat['recommended-latest'],
+    files: ['**/*.tsx'],
+  },
   {
     ...qunit.configs.recommended,
     files: ['tests/**/*-test.{js,gjs,ts,gts}'],

@@ -54,6 +54,9 @@
     "@glint/template": "^1.9.0",
     "@rollup/plugin-babel": "^7.1.0",
     "@types/qunit": "^2.19.14",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
     "@warp-drive/core": "~5.8.2",
     "@warp-drive/ember": "~5.8.2",
     "@warp-drive/json-api": "~5.8.2",
@@ -78,6 +81,7 @@
     "eslint-plugin-ember": "^12.7.5",
     "eslint-plugin-n": "^17.24.0",
     "eslint-plugin-qunit": "^8.2.6",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-warp-drive": "^5.8.2",
     "globals": "^16.5.0",
     "prettier": "^3.9.6",
@@ -96,5 +100,10 @@
   },
   "ember": {
     "edition": "octane"
+  },
+  "dependencies": {
+    "@xyflow/react": "^12.12.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
   }
 }

@@ -10,6 +10,12 @@
     "verbatimModuleSyntax": true,
     "allowSyntheticDefaultImports": true,
 
+    // app/mocks/*.json 을 모듈로 들여옵니다 (Vite 가 번들에 넣어 줍니다).
+    "resolveJsonModule": true,
+
+    // app/react/ 아래 .tsx 는 React 컴포넌트입니다 (빌드는 plugin-react 가 합니다).
+    "jsx": "react-jsx",
+
     // 컴파일은 Babel 이 합니다. tsc/glint 는 타입 검사만 담당합니다.
     // 특히 데코레이터는 Babel 쪽 구현을 써야 런타임이 깨지지 않습니다.
     "noEmit": true,

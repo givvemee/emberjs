@@ -51,3 +51,9 @@ declare module 'ember-cli-deprecation-workflow' {
     config: DeprecationWorkflowConfig,
   ): void;
 }
+
+/**
+ * 부수효과용 CSS import (`import '@xyflow/react/dist/style.css'`).
+ * Vite 가 스타일시트로 번들에 넣고, 모듈 자체는 아무것도 내보내지 않습니다.
+ */
+declare module '*.css';
