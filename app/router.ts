@@ -9,4 +9,5 @@ export default class Router extends EmberRouter {
 Router.map(function () {
   this.route('flow');
   this.route('sdui');
+  this.route('sdui-schema', { path: '/sdui/schema' });
 });

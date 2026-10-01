@@ -6,8 +6,8 @@ import {
   type Node,
   type NodeProps,
 } from '@xyflow/react';
-import { useScenario } from 'emberjs/react/sdui/context';
-import { SduiView } from 'emberjs/react/sdui/SduiView';
+import { useScenario } from './context';
+import { SduiView } from './SduiView';
 
 /** 노드 배열에는 위치만 둡니다. 내용은 context 에서 id 로 읽습니다. */
 export type SduiFlowNode = Node<Record<string, never>, 'sdui'>;

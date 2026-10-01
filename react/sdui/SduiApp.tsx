@@ -35,14 +35,15 @@ import {
   ScenarioContext,
   useScenario,
   type ScenarioContextValue,
-} from 'emberjs/react/sdui/context';
-import { SduiNode, type SduiFlowNode } from 'emberjs/react/sdui/SduiNode';
-import { Inspector } from 'emberjs/react/sdui/Inspector';
+} from './context';
+import { SduiNode, type SduiFlowNode } from './SduiNode';
+import { Inspector } from './Inspector';
+import type { Navigate } from './navigate';
 
 export interface SduiAppProps {
   payload: ScenarioPayload;
-  /** 워크스페이스 홈으로. 라우팅은 Ember 가 하므로 바깥에서 받습니다. */
-  onHome: () => void;
+  /** 다른 화면으로. 라우팅은 Ember 가 하므로 바깥에서 받습니다. */
+  navigate: Navigate;
 }
 
 // 렌더마다 새 객체를 넘기면 xyflow 가 경고하고 노드를 다시 만듭니다.
@@ -81,7 +82,7 @@ export function SduiApp(props: SduiAppProps) {
  * 연결선(edges)은 상태가 아닙니다. 블록 문서의 next 값에서 매번 계산합니다.
  * 캔버스에서 선을 잇거나 끊으면 문서의 next 를 바꾸고, 선은 따라서 다시 그려집니다.
  */
-function Workspace({ payload, onHome }: SduiAppProps) {
+function Workspace({ payload, navigate }: SduiAppProps) {
   const [state, dispatch] = useReducer(scenarioReducer, payload, initialState);
   const [nodes, setNodes, onNodesChange] = useNodesState(
     useMemo(() => toFlowNodes(payload), [payload]),
@@ -245,7 +246,7 @@ function Workspace({ payload, onHome }: SduiAppProps) {
               type="button"
               className="builder__home"
               title="워크스페이스로"
-              onClick={onHome}
+              onClick={() => navigate('index')}
             >
               ←
             </button>
@@ -265,8 +266,15 @@ function Workspace({ payload, onHome }: SduiAppProps) {
               </span>
             )}
             <span className="status status--ok">
-              React · xyflow · 레이아웃 v{payload.layouts.version}
+              레이아웃 v{payload.layouts.version}
             </span>
+            <button
+              type="button"
+              className="btn"
+              onClick={() => navigate('sdui-schema')}
+            >
+              스키마 콘솔 →
+            </button>
           </div>
         </header>
 

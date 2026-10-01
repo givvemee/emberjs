@@ -1,7 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import '@xyflow/react/dist/style.css';
-import { SduiApp, type SduiAppProps } from 'emberjs/react/sdui/SduiApp';
+import { SduiApp, type SduiAppProps } from './SduiApp';
 
 /**
  * Ember → React 경계. Ember 쪽(mount-island 모디파이어)은 이 함수만 압니다.

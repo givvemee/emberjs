@@ -1,5 +1,5 @@
 import type { FormControl as Control } from 'emberjs/utils/sdui/form';
-import { useScenario } from 'emberjs/react/sdui/context';
+import { useScenario } from './context';
 
 /**
  * 서버 폼 스키마의 컨트롤 하나. list 는 항목마다 자기 자신을 재귀로 씁니다.

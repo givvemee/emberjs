@@ -1937,3 +1937,160 @@ textarea.sdui-control__input {
 .sdui-list__remove:hover {
   background: #fef2f2;
 }
+
+/* SDUI 스키마 콘솔 */
+.sdui-tag--added {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.sdui-tag--modified {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.sdui-tag--removed,
+.sdui-tag--invalid {
+  background: #fee2e2;
+  color: var(--danger);
+}
+
+.panel__title .sdui-tag {
+  margin-left: 6px;
+}
+
+.sdui-console__add {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.sdui-console__editor {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding: 16px;
+  background: var(--bg);
+}
+
+.sdui-console__editor .sdui-code {
+  background: var(--surface);
+}
+
+.sdui-console__editor-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sdui-console__editor-head .panel__caption {
+  margin-bottom: 0;
+}
+
+.sdui-console__actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 6px;
+}
+
+.sdui-console__notice {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.sdui-console__notice.is-ok {
+  background: #ecfdf5;
+  color: var(--ok);
+}
+
+.sdui-console__notice.is-error {
+  background: #fef2f2;
+  color: var(--danger);
+}
+
+.sdui-console__removed,
+.sdui-console__confirm {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  padding: 14px;
+  border: 1px dashed #f3c6c6;
+  border-radius: 10px;
+  background: #fef2f2;
+  font-size: 12px;
+}
+
+.sdui-console__removed p,
+.sdui-console__confirm p {
+  margin: 0;
+}
+
+.sdui-console__confirm {
+  margin-top: 12px;
+}
+
+.sdui-console__preview {
+  width: 400px;
+  border-left: 1px solid var(--border);
+}
+
+.sdui-console__stage {
+  position: relative;
+  flex: 1;
+  min-height: 320px;
+  background: var(--bg);
+}
+
+.sdui-history {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+
+.sdui-history__head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.sdui-history__head span {
+  color: var(--muted);
+}
+
+.sdui-history__changes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sdui-history__change {
+  padding: 0 6px;
+  border-radius: 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+}
+
+.sdui-history__change.is-added {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.sdui-history__change.is-modified {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.sdui-history__change.is-removed {
+  background: #fee2e2;
+  color: var(--danger);
+}

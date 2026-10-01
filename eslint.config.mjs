@@ -91,7 +91,7 @@ export default defineConfig([
    */
   ember.configs.gts,
   /**
-   * React 아일랜드 (app/react/). 훅 규칙만 켭니다.
+   * React 아일랜드 (react/). 훅 규칙만 켭니다.
    */
   {
     ...reactHooks.configs.flat['recommended-latest'],

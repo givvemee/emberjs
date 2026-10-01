@@ -10,9 +10,9 @@ import {
   validateDocument,
   type BlockDocument,
 } from 'emberjs/utils/sdui/scenario';
-import { useScenario } from 'emberjs/react/sdui/context';
-import { FormControl } from 'emberjs/react/sdui/FormControl';
-import { JsonEditor } from 'emberjs/react/sdui/JsonEditor';
+import { useScenario } from './context';
+import { FormControl } from './FormControl';
+import { JsonEditor } from './JsonEditor';
 
 type Tab = 'form' | 'layout' | 'data';
 
@@ -248,7 +248,8 @@ export function Inspector({
   );
 }
 
-function FormFields({ blockId }: { blockId: string }) {
+/** 블록 하나의 서버 주도 편집 폼. 스키마 콘솔의 미리보기도 씁니다. */
+export function FormFields({ blockId }: { blockId: string }) {
   const { state, blockById } = useScenario();
   const block = blockById.get(blockId);
   const controls = block ? deriveForm(state, block) : [];

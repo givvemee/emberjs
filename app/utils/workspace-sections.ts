@@ -48,6 +48,17 @@ export const WORKSPACE_SECTIONS = [
     status: 'ready',
     highlights: ['서버 주도 UI', 'React · xyflow', 'mock 데이터'],
   },
+  {
+    route: 'sdui-schema',
+    title: 'SDUI 스키마 콘솔',
+    description:
+      '서버가 내려줄 노드 레이아웃 스키마를 편집하고 미리 본 뒤 배포합니다. 배포하면 SDUI 노드 화면이 바뀝니다.',
+    icon: '{ }',
+    accent: '#0f766e',
+    tint: '#f0fdfa',
+    status: 'ready',
+    highlights: ['스키마 편집', '미리보기', '배포 이력'],
+  },
 ] as const satisfies readonly WorkspaceSection[];
 
 export function readySections(): readonly WorkspaceSection[] {

@@ -3,18 +3,14 @@ import { service } from '@ember/service';
 import type RouterService from '@ember/routing/router-service';
 import mountIsland from 'emberjs/modifiers/mount-island';
 import type { SduiRoute } from '../../react/sdui/navigate';
-import type { ScenarioPayload } from 'emberjs/utils/sdui/scenario';
+import type { ConsolePayload } from 'emberjs/utils/sdui/mock-api';
 
-export interface SduiPageSignature {
-  Args: { payload: ScenarioPayload };
+export interface SduiSchemaPageSignature {
+  Args: { payload: ConsolePayload };
 }
 
-/**
- * SDUI 캔버스 화면은 React + xyflow 로 그립니다. 이 컴포넌트는 Ember 와 React
- * 의 경계일 뿐입니다: 라우트가 받아 온 payload 와, React 쪽에서 쓸 수 없는
- * Ember 라우터 이동을 넘겨줍니다.
- */
-export default class SduiPage extends Component<SduiPageSignature> {
+/** 스키마 콘솔(React)의 경계. SduiPage 와 같은 역할입니다. */
+export default class SduiSchemaPage extends Component<SduiSchemaPageSignature> {
   @service declare router: RouterService;
 
   navigate = (to: SduiRoute): void => {
@@ -22,7 +18,7 @@ export default class SduiPage extends Component<SduiPageSignature> {
   };
 
   mountApp = async (element: HTMLElement): Promise<() => void> => {
-    const { mount } = await import('../../react/sdui/mount');
+    const { mount } = await import('../../react/sdui/console/mount');
     return mount(element, {
       payload: this.args.payload,
       navigate: this.navigate,
