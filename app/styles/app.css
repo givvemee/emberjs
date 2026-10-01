@@ -1277,3 +1277,663 @@ body {
   background: #f3f4f6;
   color: var(--text);
 }
+
+/* ── SDUI 노드 ──────────────────────────────────────────────────────── */
+
+.sdui-loading {
+  display: grid;
+  place-items: center;
+  height: 100vh;
+  color: var(--muted);
+}
+
+.sdui-tag {
+  flex-shrink: 0;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #ede9fe;
+  color: #6d28d9;
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.sdui-tag--muted {
+  background: #eef0f3;
+  color: var(--muted);
+}
+
+/* 왼쪽 블록 목록 */
+.sdui-blocks {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sdui-blocks__item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 7px 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sdui-blocks__item:hover {
+  background: #f7f8fa;
+}
+
+.sdui-blocks__item.is-selected {
+  border-color: var(--accent);
+  background: var(--tint);
+}
+
+.sdui-blocks__icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: var(--tint);
+  color: var(--accent);
+  font-size: 13px;
+}
+
+.sdui-blocks__text {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.sdui-blocks__text strong {
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.sdui-blocks__text small {
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+}
+
+/* React 아일랜드: Ember 가 띄우는 빈 div 를 화면 전체로 */
+.react-island {
+  height: 100vh;
+}
+
+button.builder__home {
+  border: none;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* xyflow 캔버스 */
+.sdui-flow {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  background: var(--bg);
+}
+
+/* 노드 (xyflow 커스텀 노드 'sdui' 의 내용) */
+.sdui-node__frame {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  width: 280px;
+  padding: 12px;
+  border: 1px solid var(--border-strong);
+  border-top: 3px solid var(--accent);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  cursor: grab;
+  transition:
+    box-shadow 0.12s,
+    border-color 0.12s;
+}
+
+.sdui-node__frame:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.sdui-node__frame.is-selected {
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 2px var(--accent),
+    var(--shadow-md);
+}
+
+.sdui-node__frame.is-fallback {
+  border-style: dashed;
+  border-top-style: solid;
+}
+
+/*
+ * xyflow Handle 덮어쓰기. 기본 스타일(.react-flow__handle)보다 이기도록 두 클래스로
+ * 겁니다. 위치(top/right + transform)는 xyflow 가 Position 으로 정해 줍니다.
+ */
+.react-flow__handle.sdui-node__input,
+.react-flow__handle.sdui-port__dot {
+  width: 11px;
+  height: 11px;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+}
+
+/* 입력: 왼쪽 옆면, 헤더 높이쯤 */
+.react-flow__handle.sdui-node__input {
+  top: 27px;
+  background: var(--surface);
+}
+
+/* 프리미티브: header */
+.sdui-header {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 30px;
+}
+
+.sdui-header__icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--tint);
+  color: var(--accent);
+  font-size: 14px;
+}
+
+.sdui-header__text {
+  display: grid;
+  min-width: 0;
+}
+
+.sdui-header__title {
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 650;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.sdui-header__caption {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* 프리미티브: text */
+.sdui-text {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.sdui-text--muted {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.sdui-text--quote {
+  padding: 7px 9px;
+  border-radius: 8px;
+  background: var(--tint);
+}
+
+.sdui-text.is-empty {
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* 프리미티브: field */
+.sdui-field {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.sdui-field__label {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.sdui-field__value {
+  overflow: hidden;
+  text-align: right;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.sdui-field__value.is-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+}
+
+.sdui-field.is-empty .sdui-field__value {
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* 프리미티브: chips */
+.sdui-chips {
+  display: grid;
+  gap: 4px;
+}
+
+.sdui-chips__label {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.sdui-chips__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sdui-chips__list li {
+  padding: 1px 7px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #f9fafb;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10.5px;
+}
+
+.sdui-chips__empty {
+  color: var(--muted);
+  font-size: 11px;
+  font-style: italic;
+}
+
+/* 프리미티브: section / divider */
+.sdui-section {
+  display: grid;
+  gap: 6px;
+}
+
+.sdui-section__title {
+  margin: 0;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.sdui-divider {
+  width: 100%;
+  margin: 0;
+  border: none;
+  border-top: 1px solid var(--border);
+}
+
+/* 프리미티브: ports — 점이 노드 오른쪽 테두리에 걸치도록 패딩만큼 밀어 냅니다 */
+.sdui-ports {
+  display: grid;
+  gap: 4px;
+  margin: 0 -12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sdui-port {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 26px;
+  padding-right: 18px;
+}
+
+.sdui-port__label {
+  max-width: 100%;
+  padding: 2px 9px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 11.5px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.react-flow__handle.sdui-port__dot {
+  background: var(--accent);
+  cursor: crosshair;
+}
+
+.sdui-port--open .sdui-port__dot {
+  background: var(--surface);
+}
+
+.sdui-port--open .sdui-port__label {
+  border-style: dashed;
+  color: var(--muted);
+}
+
+.sdui-port--broken .sdui-port__dot {
+  border-color: var(--danger);
+  background: var(--surface);
+}
+
+.sdui-port--broken .sdui-port__label {
+  border-color: #f3c6c6;
+  background: #fef2f2;
+  color: var(--danger);
+  text-decoration: line-through;
+}
+
+/* 모르는 요소: 깨지지 않고 자리만 표시 */
+.sdui-unknown {
+  margin: 0;
+  padding: 4px 8px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+/* 연결선 */
+.sdui-flow .react-flow__edge-path {
+  stroke: #9aa2ae;
+  stroke-width: 2;
+}
+
+.sdui-flow .react-flow__edge.is-active .react-flow__edge-path {
+  stroke: var(--primary);
+  stroke-width: 2.5;
+}
+
+.sdui-flow .react-flow__edge.selected .react-flow__edge-path {
+  stroke: var(--danger);
+  stroke-dasharray: 5 4;
+}
+
+/* 오른쪽 인스펙터 */
+.sdui-inspector {
+  width: 380px;
+  border-left: 1px solid var(--border);
+}
+
+.sdui-inspector__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sdui-inspector__close {
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--muted);
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.sdui-inspector__close:hover {
+  background: #f3f4f6;
+  color: var(--text);
+}
+
+.sdui-inspector .panel__caption code {
+  padding: 0 4px;
+  border-radius: 4px;
+  background: #f3f4f6;
+  font-size: 11px;
+}
+
+.sdui-inspector__ports {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  font-size: 12px;
+  list-style: none;
+}
+
+.sdui-inspector__ports li {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+}
+
+.sdui-inspector__arrow {
+  color: var(--muted);
+}
+
+.sdui-inspector__target {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.sdui-inspector__target em {
+  margin-left: 4px;
+  color: var(--muted);
+  font-size: 11px;
+  font-style: normal;
+}
+
+.sdui-inspector__ports li.is-broken .sdui-inspector__target {
+  color: var(--danger);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+}
+
+.sdui-inspector__body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+
+.sdui-inspector__body .panel__caption {
+  margin: 0;
+}
+
+.sdui-inspector__error {
+  margin: 0;
+  color: var(--danger);
+  font-size: 12px;
+}
+
+.sdui-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 8px 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.sdui-tabs__tab {
+  margin-bottom: -1px;
+  padding: 6px 10px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sdui-tabs__tab.is-active {
+  border-bottom-color: var(--text);
+  color: var(--text);
+}
+
+.sdui-code {
+  flex: 1;
+  min-height: 240px;
+  margin: 0;
+  padding: 10px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #f9fafb;
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11.5px;
+  line-height: 1.55;
+  white-space: pre;
+  tab-size: 2;
+}
+
+.sdui-code--edit {
+  resize: none;
+}
+
+.sdui-code--edit:focus {
+  border-color: var(--primary);
+  outline: none;
+  background: var(--surface);
+}
+
+.sdui-code.is-invalid {
+  border-color: var(--danger);
+}
+
+/* SDUI 편집 폼 */
+.sdui-tag--data {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.sdui-form {
+  display: grid;
+  gap: 12px;
+}
+
+.sdui-control {
+  display: grid;
+  gap: 4px;
+}
+
+.sdui-control--toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.sdui-control__label {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.sdui-control--toggle .sdui-control__label {
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.sdui-control__input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+
+.sdui-control__input:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 15%);
+}
+
+textarea.sdui-control__input {
+  resize: vertical;
+}
+
+.sdui-control__help {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.sdui-list {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.sdui-list > legend {
+  margin-bottom: 6px;
+  padding: 0;
+}
+
+.sdui-list__item {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: #f9fafb;
+}
+
+.sdui-list__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.sdui-list__head strong {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.sdui-list__remove {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border: 1px solid #f3c6c6;
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--danger);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.sdui-list__remove:hover {
+  background: #fef2f2;
+}

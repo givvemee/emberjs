@@ -1,0 +1,541 @@
+{
+  "scenario": {
+    "_id": "6a95638b07c71aee4a69425e",
+    "botId": "6a95638b07c71aee4a694248",
+    "name": "주문·배송 상담 시나리오"
+  },
+  "blocks": [
+    {
+      "_id": "6a9646f20e29457bdf1b1501",
+      "name": "웰컴 메시지",
+      "memberId": "613ecb178db22f001c1c48f6",
+      "botId": "6a95638b07c71aee4a694248",
+      "scenarioId": "6a95638b07c71aee4a69425e",
+      "blockType": "message",
+      "editorData": {
+        "x": 40,
+        "y": 300,
+        "isMinimize": false,
+        "action_name": "DEFAULT_MESSAGE",
+        "blockData": [
+          {
+            "messageContent": {
+              "image": "",
+              "link": "",
+              "title": "",
+              "message": "안녕하세요, 블룸 쇼핑 고객센터입니다. 무엇을 도와드릴까요?",
+              "profile_image": "",
+              "profile_name": "블룸봇"
+            },
+            "useButton": true,
+            "user_choice": [
+              {
+                "type": "next_block",
+                "name": "주문 조회",
+                "next": "6a9646f20e29457bdf1b1502",
+                "active": true,
+                "button_owner": "user"
+              },
+              {
+                "type": "next_block",
+                "name": "AI 상담",
+                "next": "6a9646f20e29457bdf1b1580",
+                "active": true,
+                "button_owner": "user"
+              },
+              {
+                "type": "next_block",
+                "name": "이벤트 안내",
+                "next": "6a96ffffffffffffffffffff",
+                "active": true,
+                "button_owner": "user"
+              },
+              {
+                "type": "next_block",
+                "name": "(숨김) 테스트",
+                "next": "",
+                "active": false,
+                "button_owner": "user"
+              }
+            ],
+            "data_owner": "user"
+          }
+        ]
+      },
+      "createdAt": "2026-09-01T03:20:11.000Z",
+      "updatedAt": "2026-09-28T09:12:40.000Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a9646f20e29457bdf1b1502",
+      "name": "주문 조회 API",
+      "memberId": "613ecb178db22f001c1c48f6",
+      "botId": "6a95638b07c71aee4a694248",
+      "scenarioId": "6a95638b07c71aee4a69425e",
+      "blockType": "api",
+      "editorData": {
+        "x": 480,
+        "y": 40,
+        "isMinimize": false,
+        "action_name": "OUT_API",
+        "blockData": [
+          {
+            "user_choice": [
+              {
+                "type": "next_block",
+                "name": "성공",
+                "next": "6a9646f20e29457bdf1b1503",
+                "active": true,
+                "button_owner": "system"
+              },
+              {
+                "type": "next_block",
+                "name": "실패",
+                "next": "6a9647050e29457bdf1b15be",
+                "active": true,
+                "button_owner": "system"
+              }
+            ]
+          }
+        ],
+        "outApiData": {
+          "apiUrl": "https://api.bloom-shop.example/v1/orders/{{orderNo}}",
+          "type": "json",
+          "itemFieldName": "order",
+          "method": "GET",
+          "parameter": [{ "key": "orderNo", "value": "{{user.orderNo}}" }],
+          "header": [{ "key": "Authorization", "value": "Bearer ****" }],
+          "mapping": [
+            { "from": "order.status", "to": "delivery_status" },
+            { "from": "order.trackingNo", "to": "tracking_no" }
+          ],
+          "isKeepSession": true,
+          "isAuth": true
+        }
+      },
+      "createdAt": "2026-09-01T03:21:02.000Z",
+      "updatedAt": "2026-09-27T01:44:09.000Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a9646f20e29457bdf1b1503",
+      "name": "배송 완료 여부",
+      "memberId": "613ecb178db22f001c1c48f6",
+      "botId": "6a95638b07c71aee4a694248",
+      "scenarioId": "6a95638b07c71aee4a69425e",
+      "blockType": "condition",
+      "editorData": {
+        "x": 937,
+        "y": -40,
+        "isMinimize": false,
+        "action_name": "CONDITION",
+        "blockData": [
+          {
+            "user_choice": [
+              {
+                "type": "next_block",
+                "name": "배송 완료",
+                "next": "6a9646f20e29457bdf1b1504",
+                "active": true,
+                "button_owner": "system"
+              },
+              {
+                "type": "next_block",
+                "name": "그 외",
+                "next": "6a9646f20e29457bdf1b1580",
+                "active": true,
+                "button_owner": "system"
+              }
+            ]
+          }
+        ],
+        "conditionData": {
+          "key": "delivery_status",
+          "inequality": "==",
+          "argument": "DELIVERED"
+        },
+        "multiConditionData": [
+          {
+            "key": "delivery_status",
+            "inequality": "==",
+            "argument": "DELIVERED"
+          },
+          { "key": "tracking_no", "inequality": "!=", "argument": "" }
+        ]
+      },
+      "createdAt": "2026-09-01T03:22:30.000Z",
+      "updatedAt": "2026-09-29T06:03:51.000Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a9646f20e29457bdf1b1504",
+      "name": "배송 완료 안내",
+      "memberId": "613ecb178db22f001c1c48f6",
+      "botId": "6a95638b07c71aee4a694248",
+      "scenarioId": "6a95638b07c71aee4a69425e",
+      "blockType": "message",
+      "editorData": {
+        "x": 1400,
+        "y": -80,
+        "isMinimize": false,
+        "action_name": "DEFAULT_MESSAGE",
+        "blockData": [
+          {
+            "messageContent": {
+              "image": "",
+              "link": "",
+              "title": "",
+              "message": "주문하신 상품은 배송이 완료되었습니다. 운송장 번호는 {{tracking_no}} 입니다.",
+              "profile_image": "",
+              "profile_name": "블룸봇"
+            },
+            "useButton": true,
+            "user_choice": [
+              {
+                "type": "next_block",
+                "name": "확인",
+                "next": "6a9646f20e29457bdf1b1599",
+                "active": true,
+                "button_owner": "user"
+              }
+            ],
+            "data_owner": "user"
+          }
+        ]
+      },
+      "createdAt": "2026-09-01T03:24:10.000Z",
+      "updatedAt": "2026-09-29T06:05:18.000Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a9646f20e29457bdf1b1580",
+      "name": "AI 에이전트 1",
+      "memberId": "613ecb178db22f001c1c48f6",
+      "botId": "6a95638b07c71aee4a694248",
+      "scenarioId": "6a95638b07c71aee4a69425e",
+      "editorData": {
+        "y": 300.3273952816562,
+        "x": 937.7615584188432,
+        "isMinimize": false,
+        "action_name": "DEFAULT_AGENT",
+        "blockData": [
+          {
+            "user_choice": [
+              {
+                "type": "next_block",
+                "name": "에러 발생",
+                "next": "6a9647050e29457bdf1b15be",
+                "url": "",
+                "phone": "-1",
+                "next_scenario_id": "",
+                "active": true,
+                "button_owner": "user",
+                "btnParams": [],
+                "isNonDisplay": false,
+                "urlParams": []
+              },
+              {
+                "type": "next_block",
+                "name": "상담 종료",
+                "next": "",
+                "url": "",
+                "phone": "-1",
+                "next_scenario_id": "",
+                "active": true,
+                "button_owner": "user",
+                "btnParams": [],
+                "isNonDisplay": false,
+                "urlParams": []
+              },
+              {
+                "type": "next_block",
+                "name": "상담사 연결",
+                "next": "6a9647050e29457bdf1b15be",
+                "url": "",
+                "phone": "-1",
+                "next_scenario_id": "",
+                "active": true,
+                "button_owner": "user",
+                "btnParams": [],
+                "isNonDisplay": false,
+                "urlParams": []
+              }
+            ],
+            "messageContent": {
+              "image": "",
+              "link": "",
+              "title": "",
+              "message": "",
+              "profile_image": "",
+              "profile_name": "",
+              "product_price": "",
+              "product_name": "",
+              "list_title": "",
+              "list_link": ""
+            },
+            "list": [],
+            "useButton": true,
+            "user_response": {
+              "next": "",
+              "parameter": "",
+              "askMessage": "",
+              "regex": "^[0-9a-zA-Z]([-_.]?[0-9a-zA-Z])*@[0-9a-zA-Z]([-_.]?[0-9a-zA-Z])*.[a-zA-Z]{2,3}$",
+              "retryAskCount": 3,
+              "customAskImg": false,
+              "askImg": "",
+              "retryAskType": "all",
+              "isRegexValidate": false
+            },
+            "data_owner": "user",
+            "imgUrlCustom": true
+          }
+        ],
+        "moduleData": {
+          "scenarioId": "",
+          "nextBlockId": "",
+          "isEdit": false
+        },
+        "outApiData": {
+          "apiUrl": "",
+          "type": "",
+          "itemFieldName": "",
+          "method": "GET",
+          "parameter": [],
+          "header": [],
+          "mapping": [],
+          "isKeepSession": true,
+          "isAuth": false
+        },
+        "authData": {
+          "provider": "",
+          "isKeepSession": true,
+          "authUrl": ""
+        },
+        "conditionData": {
+          "key": "",
+          "inequality": ">",
+          "argument": ""
+        },
+        "multiConditionData": [
+          {
+            "key": "",
+            "inequality": ">",
+            "argument": ""
+          }
+        ],
+        "subBlockId": "",
+        "parentBlockId": "",
+        "addressData": {
+          "address": "",
+          "address2": "",
+          "zoneCode": ""
+        },
+        "formData": {
+          "title": "",
+          "desc": "",
+          "isSingleRes": false,
+          "isHappytalkSend": false,
+          "profileId": {
+            "use": false,
+            "value": ""
+          }
+        },
+        "variablesData": {
+          "nextBlockId": "",
+          "initalExceptList": [],
+          "matchList": []
+        },
+        "arData": {
+          "isFlowEnd": false,
+          "isCallEnd": false,
+          "isVoiceSkip": true,
+          "tts": {
+            "ttsPath": "",
+            "messageContent": "",
+            "voiceType": {
+              "speaker": "nara",
+              "speed": "0",
+              "pitch": "0"
+            },
+            "updatedAt": "",
+            "isTextPlay": false
+          },
+          "message": {
+            "type": "alimtalk",
+            "sms": {
+              "type": "SMS",
+              "title": "",
+              "content": ""
+            },
+            "alimtalk": {
+              "code": ""
+            }
+          },
+          "callConnect": {
+            "incommingCode": "default",
+            "counselorAssign": {
+              "counselorType": "R",
+              "prevCounselor": true,
+              "dateRange": "1week"
+            }
+          },
+          "input": {
+            "type": "",
+            "endKey": "#",
+            "inputLength": 5
+          },
+          "inputVoice": {
+            "parameter": ""
+          },
+          "option": {
+            "isCustom": false,
+            "inputWaitingTime": "30",
+            "connectionWaitingTime": "30",
+            "countConnectionAttempts": "3"
+          }
+        },
+        "integrationApiData": [
+          {
+            "role": "CONNECT",
+            "url": ""
+          },
+          {
+            "role": "DISCONNECT",
+            "url": ""
+          },
+          {
+            "role": "TARGET",
+            "url": ""
+          }
+        ],
+        "aiData": {
+          "inputVariable": "",
+          "isRepeat": false,
+          "analysis": {
+            "outputVariable": "",
+            "prompt": ""
+          }
+        },
+        "agentData": {
+          "agentRunnerId": "6a9646f20e29457bdf1b1597",
+          "addOns": []
+        }
+      },
+      "blockType": "agent",
+      "createdAt": "2026-09-01T03:23:52.003Z",
+      "updatedAt": "2026-09-30T03:09:43.023Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a9647050e29457bdf1b15be",
+      "name": "상담사 연결",
+      "memberId": "613ecb178db22f001c1c48f6",
+      "botId": "6a95638b07c71aee4a694248",
+      "scenarioId": "6a95638b07c71aee4a69425e",
+      "blockType": "counselor",
+      "editorData": {
+        "x": 1400,
+        "y": 380,
+        "isMinimize": false,
+        "action_name": "COUNSELOR_CONNECT",
+        "blockData": [
+          {
+            "messageContent": {
+              "message": "상담사를 연결해 드릴게요. 잠시만 기다려 주세요."
+            },
+            "user_choice": [
+              {
+                "type": "next_block",
+                "name": "연결 실패",
+                "next": "6a9646f20e29457bdf1b1598",
+                "active": true,
+                "button_owner": "system"
+              }
+            ]
+          }
+        ],
+        "integrationApiData": [
+          { "role": "CONNECT", "url": "https://happytalk.example/connect" },
+          {
+            "role": "DISCONNECT",
+            "url": "https://happytalk.example/disconnect"
+          },
+          { "role": "TARGET", "url": "" }
+        ],
+        "arData": {
+          "callConnect": {
+            "incommingCode": "default",
+            "counselorAssign": {
+              "counselorType": "R",
+              "prevCounselor": true,
+              "dateRange": "1week"
+            }
+          }
+        }
+      },
+      "createdAt": "2026-09-01T03:24:12.000Z",
+      "updatedAt": "2026-09-30T02:58:01.000Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a9646f20e29457bdf1b1598",
+      "name": "콜백 예약 (ARS)",
+      "memberId": "613ecb178db22f001c1c48f6",
+      "botId": "6a95638b07c71aee4a694248",
+      "scenarioId": "6a95638b07c71aee4a69425e",
+      "blockType": "ars_callback",
+      "editorData": {
+        "x": 1840,
+        "y": 440,
+        "isMinimize": false,
+        "action_name": "ARS_CALLBACK",
+        "blockData": [
+          {
+            "user_choice": [
+              {
+                "type": "next_block",
+                "name": "예약 완료",
+                "next": "6a9646f20e29457bdf1b1599",
+                "active": true,
+                "button_owner": "system"
+              }
+            ]
+          }
+        ],
+        "arData": {
+          "tts": {
+            "messageContent": "상담 가능한 시간에 다시 연락드리겠습니다.",
+            "voiceType": { "speaker": "nara", "speed": "0", "pitch": "0" }
+          }
+        }
+      },
+      "createdAt": "2026-09-02T08:10:00.000Z",
+      "updatedAt": "2026-09-30T02:59:44.000Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a9646f20e29457bdf1b1599",
+      "name": "상담 종료",
+      "memberId": "613ecb178db22f001c1c48f6",
+      "botId": "6a95638b07c71aee4a694248",
+      "scenarioId": "6a95638b07c71aee4a69425e",
+      "blockType": "end",
+      "editorData": {
+        "x": 1840,
+        "y": 120,
+        "isMinimize": false,
+        "action_name": "END",
+        "blockData": [
+          {
+            "messageContent": {
+              "message": "이용해 주셔서 감사합니다. 좋은 하루 보내세요!"
+            }
+          }
+        ]
+      },
+      "createdAt": "2026-09-01T03:25:00.000Z",
+      "updatedAt": "2026-09-29T06:10:00.000Z",
+      "__v": 0
+    }
+  ]
+}

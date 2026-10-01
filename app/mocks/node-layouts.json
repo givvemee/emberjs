@@ -1,0 +1,725 @@
+{
+  "version": 1,
+  "layouts": {
+    "message": {
+      "label": "메시지",
+      "icon": "💬",
+      "accent": "#2563eb",
+      "tint": "#eff6ff",
+      "body": [
+        {
+          "type": "header",
+          "icon": "💬",
+          "title": "{{name}}",
+          "caption": "메시지 · {{editorData.blockData.0.messageContent.profile_name}}"
+        },
+        {
+          "type": "text",
+          "text": "{{editorData.blockData.0.messageContent.message}}",
+          "tone": "quote",
+          "lines": 3,
+          "fallback": "메시지가 비어 있습니다"
+        },
+        {
+          "type": "field",
+          "label": "이미지",
+          "value": "{{editorData.blockData.0.messageContent.image}}",
+          "visibleIf": {
+            "path": "editorData.blockData.0.messageContent.image",
+            "op": "notEmpty"
+          }
+        },
+        {
+          "type": "section",
+          "title": "버튼",
+          "visibleIf": {
+            "path": "editorData.blockData.0.useButton"
+          },
+          "children": [
+            {
+              "type": "ports"
+            }
+          ]
+        }
+      ],
+      "ports": [
+        {
+          "source": "editorData.blockData.0.user_choice",
+          "label": "{{name}}",
+          "target": "{{next}}",
+          "visibleIf": {
+            "path": "active"
+          }
+        }
+      ],
+      "form": [
+        {
+          "type": "text",
+          "label": "블록 이름",
+          "path": "name"
+        },
+        {
+          "type": "textarea",
+          "label": "메시지",
+          "path": "editorData.blockData.0.messageContent.message"
+        },
+        {
+          "type": "text",
+          "label": "프로필 이름",
+          "path": "editorData.blockData.0.messageContent.profile_name"
+        },
+        {
+          "type": "text",
+          "label": "이미지 URL",
+          "path": "editorData.blockData.0.messageContent.image",
+          "placeholder": "https://"
+        },
+        {
+          "type": "toggle",
+          "label": "버튼 사용",
+          "path": "editorData.blockData.0.useButton"
+        },
+        {
+          "type": "list",
+          "label": "버튼",
+          "source": "editorData.blockData.0.user_choice",
+          "itemTitle": "{{name}}",
+          "addLabel": "버튼 추가",
+          "newItem": {
+            "type": "next_block",
+            "name": "새 버튼",
+            "next": "",
+            "active": true,
+            "button_owner": "user"
+          },
+          "fields": [
+            {
+              "type": "text",
+              "label": "버튼명",
+              "path": "name"
+            },
+            {
+              "type": "select",
+              "label": "다음 블록",
+              "path": "next",
+              "options": "$blocks"
+            },
+            {
+              "type": "toggle",
+              "label": "활성",
+              "path": "active"
+            }
+          ]
+        }
+      ]
+    },
+    "agent": {
+      "label": "AI 에이전트",
+      "icon": "✦",
+      "accent": "#7c3aed",
+      "tint": "#f5f3ff",
+      "body": [
+        {
+          "type": "header",
+          "icon": "✦",
+          "title": "{{name}}",
+          "caption": "AI 에이전트 · {{editorData.action_name}}"
+        },
+        {
+          "type": "field",
+          "label": "러너",
+          "value": "{{editorData.agentData.agentRunnerId | short}}",
+          "mono": true,
+          "fallback": "미지정"
+        },
+        {
+          "type": "chips",
+          "label": "애드온",
+          "source": "editorData.agentData.addOns",
+          "text": "{{name}}",
+          "empty": "애드온 없음"
+        },
+        {
+          "type": "field",
+          "label": "입력 검증",
+          "value": "정규식 · 최대 {{editorData.blockData.0.user_response.retryAskCount}}회 재질문",
+          "visibleIf": {
+            "path": "editorData.blockData.0.user_response.isRegexValidate"
+          }
+        },
+        {
+          "type": "divider"
+        },
+        {
+          "type": "section",
+          "title": "출구",
+          "children": [
+            {
+              "type": "ports"
+            }
+          ]
+        }
+      ],
+      "ports": [
+        {
+          "source": "editorData.blockData.0.user_choice",
+          "label": "{{name}}",
+          "target": "{{next}}",
+          "visibleIf": {
+            "path": "active"
+          }
+        }
+      ],
+      "form": [
+        {
+          "type": "text",
+          "label": "블록 이름",
+          "path": "name"
+        },
+        {
+          "type": "text",
+          "label": "에이전트 러너 ID",
+          "path": "editorData.agentData.agentRunnerId"
+        },
+        {
+          "type": "toggle",
+          "label": "입력 정규식 검증",
+          "path": "editorData.blockData.0.user_response.isRegexValidate"
+        },
+        {
+          "type": "number",
+          "label": "재질문 횟수",
+          "path": "editorData.blockData.0.user_response.retryAskCount",
+          "min": 0
+        },
+        {
+          "type": "list",
+          "label": "애드온",
+          "source": "editorData.agentData.addOns",
+          "itemTitle": "{{name}}",
+          "addLabel": "애드온 추가",
+          "newItem": {
+            "name": "새 애드온"
+          },
+          "fields": [
+            {
+              "type": "text",
+              "label": "이름",
+              "path": "name"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "label": "출구",
+          "source": "editorData.blockData.0.user_choice",
+          "itemTitle": "{{name}}",
+          "addLabel": "출구 추가",
+          "newItem": {
+            "type": "next_block",
+            "name": "새 버튼",
+            "next": "",
+            "active": true,
+            "button_owner": "user"
+          },
+          "fields": [
+            {
+              "type": "text",
+              "label": "버튼명",
+              "path": "name"
+            },
+            {
+              "type": "select",
+              "label": "다음 블록",
+              "path": "next",
+              "options": "$blocks"
+            },
+            {
+              "type": "toggle",
+              "label": "활성",
+              "path": "active"
+            }
+          ]
+        }
+      ]
+    },
+    "api": {
+      "label": "외부 API",
+      "icon": "⇄",
+      "accent": "#0891b2",
+      "tint": "#ecfeff",
+      "body": [
+        {
+          "type": "header",
+          "icon": "⇄",
+          "title": "{{name}}",
+          "caption": "외부 API 호출"
+        },
+        {
+          "type": "field",
+          "label": "{{editorData.outApiData.method}}",
+          "value": "{{editorData.outApiData.apiUrl}}",
+          "mono": true,
+          "fallback": "URL 미설정"
+        },
+        {
+          "type": "chips",
+          "label": "응답 매핑",
+          "source": "editorData.outApiData.mapping",
+          "text": "{{from}} → {{to}}",
+          "empty": "매핑 없음"
+        },
+        {
+          "type": "text",
+          "text": "헤더 {{editorData.outApiData.header | count}}개 · 파라미터 {{editorData.outApiData.parameter | count}}개 · 인증 {{editorData.outApiData.isAuth | yesno}}",
+          "tone": "muted"
+        },
+        {
+          "type": "ports"
+        }
+      ],
+      "ports": [
+        {
+          "source": "editorData.blockData.0.user_choice",
+          "label": "{{name}}",
+          "target": "{{next}}"
+        }
+      ],
+      "form": [
+        {
+          "type": "text",
+          "label": "블록 이름",
+          "path": "name"
+        },
+        {
+          "type": "select",
+          "label": "메서드",
+          "path": "editorData.outApiData.method",
+          "options": [
+            {
+              "value": "GET",
+              "label": "GET"
+            },
+            {
+              "value": "POST",
+              "label": "POST"
+            },
+            {
+              "value": "PUT",
+              "label": "PUT"
+            },
+            {
+              "value": "DELETE",
+              "label": "DELETE"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "label": "URL",
+          "path": "editorData.outApiData.apiUrl",
+          "placeholder": "https://"
+        },
+        {
+          "type": "toggle",
+          "label": "인증 사용",
+          "path": "editorData.outApiData.isAuth"
+        },
+        {
+          "type": "list",
+          "label": "응답 매핑",
+          "source": "editorData.outApiData.mapping",
+          "itemTitle": "{{from}} → {{to}}",
+          "addLabel": "매핑 추가",
+          "newItem": {
+            "from": "",
+            "to": ""
+          },
+          "fields": [
+            {
+              "type": "text",
+              "label": "응답 경로",
+              "path": "from"
+            },
+            {
+              "type": "text",
+              "label": "저장할 변수",
+              "path": "to"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "label": "결과 분기",
+          "source": "editorData.blockData.0.user_choice",
+          "itemTitle": "{{name}}",
+          "addLabel": "분기 추가",
+          "newItem": {
+            "type": "next_block",
+            "name": "새 출구",
+            "next": "",
+            "active": true,
+            "button_owner": "system"
+          },
+          "fields": [
+            {
+              "type": "text",
+              "label": "출구 이름",
+              "path": "name"
+            },
+            {
+              "type": "select",
+              "label": "다음 블록",
+              "path": "next",
+              "options": "$blocks"
+            },
+            {
+              "type": "toggle",
+              "label": "활성",
+              "path": "active"
+            }
+          ]
+        }
+      ]
+    },
+    "condition": {
+      "label": "조건 분기",
+      "icon": "⑂",
+      "accent": "#d97706",
+      "tint": "#fffbeb",
+      "body": [
+        {
+          "type": "header",
+          "icon": "⑂",
+          "title": "{{name}}",
+          "caption": "조건 {{editorData.multiConditionData | count}}개 (AND)"
+        },
+        {
+          "type": "chips",
+          "source": "editorData.multiConditionData",
+          "text": "{{key}} {{inequality}} {{argument}}",
+          "empty": "조건 없음"
+        },
+        {
+          "type": "ports"
+        }
+      ],
+      "ports": [
+        {
+          "source": "editorData.blockData.0.user_choice",
+          "label": "{{name}}",
+          "target": "{{next}}"
+        }
+      ],
+      "form": [
+        {
+          "type": "text",
+          "label": "블록 이름",
+          "path": "name"
+        },
+        {
+          "type": "list",
+          "label": "조건 (모두 만족)",
+          "source": "editorData.multiConditionData",
+          "itemTitle": "{{key}} {{inequality}} {{argument}}",
+          "addLabel": "조건 추가",
+          "newItem": {
+            "key": "",
+            "inequality": "==",
+            "argument": ""
+          },
+          "fields": [
+            {
+              "type": "text",
+              "label": "변수",
+              "path": "key"
+            },
+            {
+              "type": "select",
+              "label": "비교",
+              "path": "inequality",
+              "options": [
+                {
+                  "value": "==",
+                  "label": "=="
+                },
+                {
+                  "value": "!=",
+                  "label": "!="
+                },
+                {
+                  "value": ">",
+                  "label": ">"
+                },
+                {
+                  "value": ">=",
+                  "label": ">="
+                },
+                {
+                  "value": "<",
+                  "label": "<"
+                },
+                {
+                  "value": "<=",
+                  "label": "<="
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "label": "값",
+              "path": "argument"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "label": "분기",
+          "source": "editorData.blockData.0.user_choice",
+          "itemTitle": "{{name}}",
+          "addLabel": "분기 추가",
+          "newItem": {
+            "type": "next_block",
+            "name": "새 출구",
+            "next": "",
+            "active": true,
+            "button_owner": "system"
+          },
+          "fields": [
+            {
+              "type": "text",
+              "label": "출구 이름",
+              "path": "name"
+            },
+            {
+              "type": "select",
+              "label": "다음 블록",
+              "path": "next",
+              "options": "$blocks"
+            },
+            {
+              "type": "toggle",
+              "label": "활성",
+              "path": "active"
+            }
+          ]
+        }
+      ]
+    },
+    "counselor": {
+      "label": "상담사 연결",
+      "icon": "☎",
+      "accent": "#db2777",
+      "tint": "#fdf2f8",
+      "body": [
+        {
+          "type": "header",
+          "icon": "☎",
+          "title": "{{name}}",
+          "caption": "상담사 배정 · {{editorData.arData.callConnect.counselorAssign.dateRange}} 이내 이전 상담사 우선"
+        },
+        {
+          "type": "text",
+          "text": "{{editorData.blockData.0.messageContent.message}}",
+          "tone": "quote",
+          "lines": 2
+        },
+        {
+          "type": "section",
+          "title": "연동 API",
+          "children": [
+            {
+              "type": "chips",
+              "source": "editorData.integrationApiData",
+              "text": "{{role}}",
+              "visibleIf": {
+                "path": "editorData.integrationApiData",
+                "op": "notEmpty"
+              }
+            }
+          ]
+        },
+        {
+          "type": "ports"
+        }
+      ],
+      "ports": [
+        {
+          "source": "editorData.blockData.0.user_choice",
+          "label": "{{name}}",
+          "target": "{{next}}"
+        }
+      ],
+      "form": [
+        {
+          "type": "text",
+          "label": "블록 이름",
+          "path": "name"
+        },
+        {
+          "type": "textarea",
+          "label": "메시지",
+          "path": "editorData.blockData.0.messageContent.message"
+        },
+        {
+          "type": "select",
+          "label": "이전 상담사 우선 기간",
+          "path": "editorData.arData.callConnect.counselorAssign.dateRange",
+          "options": [
+            {
+              "value": "1day",
+              "label": "1일"
+            },
+            {
+              "value": "1week",
+              "label": "1주"
+            },
+            {
+              "value": "1month",
+              "label": "1개월"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "label": "출구",
+          "source": "editorData.blockData.0.user_choice",
+          "itemTitle": "{{name}}",
+          "addLabel": "출구 추가",
+          "newItem": {
+            "type": "next_block",
+            "name": "새 출구",
+            "next": "",
+            "active": true,
+            "button_owner": "system"
+          },
+          "fields": [
+            {
+              "type": "text",
+              "label": "출구 이름",
+              "path": "name"
+            },
+            {
+              "type": "select",
+              "label": "다음 블록",
+              "path": "next",
+              "options": "$blocks"
+            },
+            {
+              "type": "toggle",
+              "label": "활성",
+              "path": "active"
+            }
+          ]
+        }
+      ]
+    },
+    "end": {
+      "label": "종료",
+      "icon": "■",
+      "accent": "#dc2626",
+      "tint": "#fef2f2",
+      "body": [
+        {
+          "type": "header",
+          "icon": "■",
+          "title": "{{name}}",
+          "caption": "대화 종료"
+        },
+        {
+          "type": "text",
+          "text": "{{editorData.blockData.0.messageContent.message}}",
+          "tone": "quote",
+          "lines": 2
+        }
+      ],
+      "form": [
+        {
+          "type": "text",
+          "label": "블록 이름",
+          "path": "name"
+        },
+        {
+          "type": "textarea",
+          "label": "메시지",
+          "path": "editorData.blockData.0.messageContent.message"
+        }
+      ]
+    }
+  },
+  "fallback": {
+    "label": "알 수 없는 블록",
+    "icon": "?",
+    "accent": "#6b7280",
+    "tint": "#f3f4f6",
+    "body": [
+      {
+        "type": "header",
+        "icon": "?",
+        "title": "{{name}}",
+        "caption": "{{blockType}} · 이 클라이언트용 레이아웃이 없습니다"
+      },
+      {
+        "type": "field",
+        "label": "액션",
+        "value": "{{editorData.action_name}}",
+        "mono": true
+      },
+      {
+        "type": "ports"
+      }
+    ],
+    "ports": [
+      {
+        "source": "editorData.blockData.0.user_choice",
+        "label": "{{name}}",
+        "target": "{{next}}"
+      }
+    ],
+    "form": [
+      {
+        "type": "text",
+        "label": "블록 이름",
+        "path": "name"
+      },
+      {
+        "type": "text",
+        "label": "액션",
+        "path": "editorData.action_name",
+        "help": "레이아웃이 없는 타입이라 공통 필드만 보입니다."
+      },
+      {
+        "type": "list",
+        "label": "출구",
+        "source": "editorData.blockData.0.user_choice",
+        "itemTitle": "{{name}}",
+        "addLabel": "출구 추가",
+        "newItem": {
+          "type": "next_block",
+          "name": "새 출구",
+          "next": "",
+          "active": true,
+          "button_owner": "system"
+        },
+        "fields": [
+          {
+            "type": "text",
+            "label": "출구 이름",
+            "path": "name"
+          },
+          {
+            "type": "select",
+            "label": "다음 블록",
+            "path": "next",
+            "options": "$blocks"
+          },
+          {
+            "type": "toggle",
+            "label": "활성",
+            "path": "active"
+          }
+        ]
+      }
+    ]
+  }
+}
